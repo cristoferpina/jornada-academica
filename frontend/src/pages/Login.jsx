@@ -1,9 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import loginBackground from '../assets/IMG20251113170442.jpg';
-import loginBrandImg from '../assets/Gemini_Generated_Image_yanjdwyanjdwyanj-removebg-preview.png';
+import loginBrandImgDefault from '../assets/Gemini_Generated_Image_yanjdwyanjdwyanj-removebg-preview.png';
 
-const API_URL = 'http://localhost:3000/api/auth';
+import { API_URL as BASE_API_URL, BASE_URL } from '../config';
+
+const API_URL = `${BASE_API_URL}/auth`;
+const SYSTEM_URL = `${BASE_API_URL}/system/settings`;
 
 function Login() {
     const [email, setEmail] = useState('');
@@ -12,7 +15,25 @@ function Login() {
     const [rememberMe, setRememberMe] = useState(false);
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
+    const [systemLogo, setSystemLogo] = useState(null);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const fetchLogo = async () => {
+            try {
+                const res = await fetch(SYSTEM_URL);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.login_logo) {
+                        setSystemLogo(`${BASE_URL}${data.login_logo}`);
+                    }
+                }
+            } catch (err) {
+                console.error("Error fetching system logo:", err);
+            }
+        };
+        fetchLogo();
+    }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -65,12 +86,12 @@ function Login() {
             {/* Left Side: Visual / Branding */}
             <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden items-center justify-center p-12" style={{
                 backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url(${loginBackground})`,
-                backgroundColor: '#3e690d',
+                backgroundColor: '#80ba26',
                 backgroundSize: 'cover',
                 backgroundPosition: 'center'
             }}>
                 <div className="relative z-10 text-white max-w-lg flex items-center justify-center">
-                    <img src={loginBrandImg} alt="13va Jornada Académica y Cultural 2026" className="max-w-full h-48 object-contain" />
+                    <img src={systemLogo || loginBrandImgDefault} alt="13va Jornada Academica y Cultural" className="max-w-full h-48 object-contain" />
                 </div>
                 <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-secondary-container/20 rounded-full blur-3xl"></div>
                 <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-96 h-96 bg-black/20 rounded-full blur-3xl"></div>
@@ -127,7 +148,7 @@ function Login() {
                                 <div className="space-y-2">
                                     <div className="flex justify-between items-center">
                                         <label className="text-sm font-semibold text-gray-900">Contraseña</label>
-                                        <Link className="text-xs font-semibold text-primary hover:underline" to="/forgot">¿Olvidó su contraseña?</Link>
+                                        <Link className="text-xs font-semibold text-primary hover:underline" to="/forgot-password">¿Olvidó su contraseña?</Link>
                                     </div>
                                     <div className="relative group">
                                         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors text-xl material-symbols-outlined">lock</span>
@@ -178,7 +199,7 @@ function Login() {
                             <div className="text-center pt-2">
                                 <p className="text-sm text-gray-600">
                                     ¿Eres alumno?{' '}
-                                    <Link className="font-semibold text-primary hover:text-primary-container hover:underline" to="/signup">
+                                    <Link className="font-semibold text-primary hover:text-primary-container hover:underline" to="/register">
                                         Regístrate aquí
                                     </Link>
                                 </p>

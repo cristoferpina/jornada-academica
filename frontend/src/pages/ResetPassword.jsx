@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import PasswordStrengthMeter from '../components/PasswordStrengthMeter';
+import { API_URL as BASE_API_URL } from '../config';
 
-const API_URL = 'http://localhost:3000/api/auth';
+const API_URL = `${BASE_API_URL}/auth`;
 
 function ResetPassword() {
   const [matricula, setMatricula] = useState('');
@@ -101,6 +103,7 @@ function ResetPassword() {
               <div>
                 <label className="block text-sm font-medium mb-1">Nueva contraseña</label>
                 <input required type="password" value={newPassword} onChange={e=>setNewPassword(e.target.value)} className="form-input" />
+                {newPassword && <PasswordStrengthMeter password={newPassword} />}
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Confirmar nueva contraseña</label>

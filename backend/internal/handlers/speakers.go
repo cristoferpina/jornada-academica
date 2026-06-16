@@ -14,6 +14,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jornada-academica/backend/internal/models"
+	"github.com/lib/pq"
 )
 
 type SpeakerHandler struct {
@@ -30,15 +31,35 @@ func NewSpeakerHandler(db *sql.DB, uploadsDir string) *SpeakerHandler {
 	}
 }
 
+func isValidAcademicLevel(level string) bool {
+	return level == "Doctorado" || level == "MaestrÃ­a" || level == "Licenciatura"
+}
+
+func isValidSessionTime(value string) bool {
+	if value == "" {
+		return true
+	}
+	_, err := time.Parse("15:04", value)
+	return err == nil
+}
+
+func (h *SpeakerHandler) venueExists(id int) bool {
+	var exists bool
+	err := h.db.QueryRow("SELECT EXISTS(SELECT 1 FROM venues WHERE id = $1)", id).Scan(&exists)
+	return err == nil && exists
+}
+
 // GetAllSpeakers obtiene todos los ponentes
 func (h *SpeakerHandler) GetAllSpeakers(c *gin.Context) {
 	rows, err := h.db.Query(`
-		SELECT id, full_name, academic_level, institution, career, biografia,
-		       profile_photo_url, institutional_logo_url, conference_name,
-		       suggested_date, audience_capacity, phone, social_media,
-		       accepted_terms, created_at, updated_at
-		FROM speakers
-		ORDER BY created_at DESC
+		SELECT s.id, s.full_name, s.academic_level, s.institution, s.career, s.biografia,
+		       s.profile_photo_url, s.institutional_logo_url, s.conference_name,
+		       s.suggested_date, s.suggested_time, s.audience_capacity, s.phone, s.social_media,
+		       s.accepted_terms, s.venue_id, s.created_at, s.updated_at,
+		       v.id, v.name, v.type, v.building, v.floor, v.capacity, v.status, v.amenities, v.image_url
+		FROM speakers s
+		LEFT JOIN venues v ON s.venue_id = v.id
+		ORDER BY s.created_at DESC
 	`)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.ErrorResponse{
@@ -52,23 +73,18 @@ func (h *SpeakerHandler) GetAllSpeakers(c *gin.Context) {
 	var speakers []models.Speaker
 	for rows.Next() {
 		var speaker models.Speaker
+		var v models.Venue
+		var vID sql.NullInt64
+		var vName, vType, vBuilding, vFloor, vStatus, vImageURL sql.NullString
+		var vCapacity sql.NullInt64
+		var vAmenities pq.StringArray
+
 		err := rows.Scan(
-			&speaker.ID,
-			&speaker.FullName,
-			&speaker.AcademicLevel,
-			&speaker.Institution,
-			&speaker.Career,
-			&speaker.Biografia,
-			&speaker.ProfilePhotoURL,
-			&speaker.InstitutionalLogoURL,
-			&speaker.ConferenceName,
-			&speaker.SuggestedDate,
-			&speaker.AudienceCapacity,
-			&speaker.Phone,
-			&speaker.SocialMedia,
-			&speaker.AcceptedTerms,
-			&speaker.CreatedAt,
-			&speaker.UpdatedAt,
+			&speaker.ID, &speaker.FullName, &speaker.AcademicLevel, &speaker.Institution, &speaker.Career, &speaker.Biografia,
+			&speaker.ProfilePhotoURL, &speaker.InstitutionalLogoURL, &speaker.ConferenceName,
+			&speaker.SuggestedDate, &speaker.SuggestedTime, &speaker.AudienceCapacity, &speaker.Phone, &speaker.SocialMedia,
+			&speaker.AcceptedTerms, &speaker.VenueID, &speaker.CreatedAt, &speaker.UpdatedAt,
+			&vID, &vName, &vType, &vBuilding, &vFloor, &vCapacity, &vStatus, &vAmenities, &vImageURL,
 		)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, models.ErrorResponse{
@@ -77,6 +93,20 @@ func (h *SpeakerHandler) GetAllSpeakers(c *gin.Context) {
 			})
 			return
 		}
+
+		if vID.Valid {
+			v.ID = int(vID.Int64)
+			v.Name = vName.String
+			v.Type = vType.String
+			if vBuilding.Valid { v.Building = &vBuilding.String }
+			if vFloor.Valid { v.Floor = &vFloor.String }
+			if vCapacity.Valid { capVal := int(vCapacity.Int64); v.Capacity = &capVal }
+			v.Status = vStatus.String
+			v.Amenities = []string(vAmenities)
+			if vImageURL.Valid { v.ImageURL = &vImageURL.String }
+			speaker.Venue = &v
+		}
+
 		speakers = append(speakers, speaker)
 	}
 
@@ -92,29 +122,27 @@ func (h *SpeakerHandler) GetSpeakerByID(c *gin.Context) {
 	id := c.Param("id")
 
 	var speaker models.Speaker
+	var v models.Venue
+	var vID sql.NullInt64
+	var vName, vType, vBuilding, vFloor, vStatus, vImageURL sql.NullString
+	var vCapacity sql.NullInt64
+	var vAmenities pq.StringArray
+
 	err := h.db.QueryRow(`
-		SELECT id, full_name, academic_level, institution, career, biografia,
-		       profile_photo_url, institutional_logo_url, conference_name,
-		       suggested_date, audience_capacity, phone, social_media,
-		       accepted_terms, created_at, updated_at
-		FROM speakers WHERE id = $1
+		SELECT s.id, s.full_name, s.academic_level, s.institution, s.career, s.biografia,
+		       s.profile_photo_url, s.institutional_logo_url, s.conference_name,
+		       s.suggested_date, s.suggested_time, s.audience_capacity, s.phone, s.social_media,
+		       s.accepted_terms, s.venue_id, s.created_at, s.updated_at,
+		       v.id, v.name, v.type, v.building, v.floor, v.capacity, v.status, v.amenities, v.image_url
+		FROM speakers s
+		LEFT JOIN venues v ON s.venue_id = v.id
+		WHERE s.id = $1
 	`, id).Scan(
-		&speaker.ID,
-		&speaker.FullName,
-		&speaker.AcademicLevel,
-		&speaker.Institution,
-		&speaker.Career,
-		&speaker.Biografia,
-		&speaker.ProfilePhotoURL,
-		&speaker.InstitutionalLogoURL,
-		&speaker.ConferenceName,
-		&speaker.SuggestedDate,
-		&speaker.AudienceCapacity,
-		&speaker.Phone,
-		&speaker.SocialMedia,
-		&speaker.AcceptedTerms,
-		&speaker.CreatedAt,
-		&speaker.UpdatedAt,
+		&speaker.ID, &speaker.FullName, &speaker.AcademicLevel, &speaker.Institution, &speaker.Career, &speaker.Biografia,
+		&speaker.ProfilePhotoURL, &speaker.InstitutionalLogoURL, &speaker.ConferenceName,
+		&speaker.SuggestedDate, &speaker.SuggestedTime, &speaker.AudienceCapacity, &speaker.Phone, &speaker.SocialMedia,
+		&speaker.AcceptedTerms, &speaker.VenueID, &speaker.CreatedAt, &speaker.UpdatedAt,
+		&vID, &vName, &vType, &vBuilding, &vFloor, &vCapacity, &vStatus, &vAmenities, &vImageURL,
 	)
 
 	if err == sql.ErrNoRows {
@@ -127,6 +155,19 @@ func (h *SpeakerHandler) GetSpeakerByID(c *gin.Context) {
 			Error:   err.Error(),
 		})
 		return
+	}
+
+	if vID.Valid {
+		v.ID = int(vID.Int64)
+		v.Name = vName.String
+		v.Type = vType.String
+		if vBuilding.Valid { v.Building = &vBuilding.String }
+		if vFloor.Valid { v.Floor = &vFloor.String }
+		if vCapacity.Valid { capVal := int(vCapacity.Int64); v.Capacity = &capVal }
+		v.Status = vStatus.String
+		v.Amenities = []string(vAmenities)
+		if vImageURL.Valid { v.ImageURL = &vImageURL.String }
+		speaker.Venue = &v
 	}
 
 	c.JSON(http.StatusOK, speaker)
@@ -142,9 +183,11 @@ func (h *SpeakerHandler) CreateSpeaker(c *gin.Context) {
 	career := c.PostForm("career")
 	biografia := c.PostForm("biografia")
 	suggestedDate := c.PostForm("suggested_date")
+	suggestedTime := c.PostForm("suggested_time")
 	audienceCapacityStr := c.PostForm("audience_capacity")
 	phone := c.PostForm("phone")
 	socialMedia := c.PostForm("social_media")
+	venueIDStr := c.PostForm("venue_id")
 
 	// Validar campos requeridos
 	if fullName == "" || academicLevel == "" || conferenceName == "" {
@@ -153,10 +196,18 @@ func (h *SpeakerHandler) CreateSpeaker(c *gin.Context) {
 		})
 		return
 	}
+	if !isValidAcademicLevel(academicLevel) {
+		c.JSON(http.StatusBadRequest, models.ErrorResponse{Message: "Nivel academico invalido"})
+		return
+	}
+	if suggestedTime != "" && !isValidSessionTime(suggestedTime) {
+		c.JSON(http.StatusBadRequest, models.ErrorResponse{Message: "Hora invalida. Usa formato HH:MM"})
+		return
+	}
 
 	acceptedTerms := acceptedTermsStr == "true" || acceptedTermsStr == "on"
 
-	// Procesar archivos — se guardan en ./uploads/
+	// Procesar archivos
 	var profilePhotoURL *string
 	var institutionalLogoURL *string
 
@@ -174,44 +225,46 @@ func (h *SpeakerHandler) CreateSpeaker(c *gin.Context) {
 		}
 	}
 
-	// Punteros para campos opcionales
+	// Campos opcionales
 	var institutionPtr *string
-	if institution != "" {
-		institutionPtr = &institution
-	}
-
+	if institution != "" { institutionPtr = &institution }
 	var careerPtr *string
-	if career != "" {
-		careerPtr = &career
-	}
-
+	if career != "" { careerPtr = &career }
 	var biografiaPtr *string
-	if biografia != "" {
-		biografiaPtr = &biografia
-	}
-
+	if biografia != "" { biografiaPtr = &biografia }
 	var suggestedDatePtr *time.Time
 	if suggestedDate != "" {
-		if parsedDate, err := time.Parse("2006-01-02", suggestedDate); err == nil {
-			suggestedDatePtr = &parsedDate
+		parsedDate, err := time.Parse("2006-01-02", suggestedDate)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, models.ErrorResponse{Message: "Fecha invalida. Usa formato YYYY-MM-DD"})
+			return
 		}
+		suggestedDatePtr = &parsedDate
 	}
-
+	var suggestedTimePtr *string
+	if suggestedTime != "" { suggestedTimePtr = &suggestedTime }
 	var audienceCapacityPtr *int
 	if audienceCapacityStr != "" {
-		if capacity, err := strconv.Atoi(audienceCapacityStr); err == nil {
-			audienceCapacityPtr = &capacity
+		capacity, err := strconv.Atoi(audienceCapacityStr)
+		if err != nil || capacity <= 0 {
+			c.JSON(http.StatusBadRequest, models.ErrorResponse{Message: "El cupo debe ser un numero mayor a cero"})
+			return
 		}
+		audienceCapacityPtr = &capacity
 	}
-
 	var phonePtr *string
-	if phone != "" {
-		phonePtr = &phone
-	}
-
+	if phone != "" { phonePtr = &phone }
 	var socialMediaPtr *string
-	if socialMedia != "" {
-		socialMediaPtr = &socialMedia
+	if socialMedia != "" { socialMediaPtr = &socialMedia }
+	
+	var venueIDPtr *int
+	if venueIDStr != "" && venueIDStr != "null" {
+		vID, err := strconv.Atoi(venueIDStr)
+		if err != nil || !h.venueExists(vID) {
+			c.JSON(http.StatusBadRequest, models.ErrorResponse{Message: "Recinto invalido"})
+			return
+		}
+		venueIDPtr = &vID
 	}
 
 	// Insertar en BD
@@ -220,24 +273,25 @@ func (h *SpeakerHandler) CreateSpeaker(c *gin.Context) {
 		INSERT INTO speakers (
 			full_name, academic_level, institution, career, biografia,
 			profile_photo_url, institutional_logo_url,
-			conference_name, suggested_date, audience_capacity,
-			phone, social_media, accepted_terms
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+			conference_name, suggested_date, suggested_time, audience_capacity,
+			phone, social_media, accepted_terms, venue_id
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
 		RETURNING id, full_name, academic_level, institution, career, biografia,
 		          profile_photo_url, institutional_logo_url, conference_name,
-		          suggested_date, audience_capacity, phone, social_media,
-		          accepted_terms, created_at, updated_at
+		          suggested_date, suggested_time, audience_capacity, phone, social_media,
+		          accepted_terms, venue_id, created_at, updated_at
 	`,
 		fullName, academicLevel, institutionPtr, careerPtr, biografiaPtr,
 		profilePhotoURL, institutionalLogoURL, conferenceName,
-		suggestedDatePtr, audienceCapacityPtr, phonePtr, socialMediaPtr, acceptedTerms,
+		suggestedDatePtr, suggestedTimePtr, audienceCapacityPtr, phonePtr, socialMediaPtr, acceptedTerms, venueIDPtr,
 	).Scan(
 		&createdSpeaker.ID, &createdSpeaker.FullName, &createdSpeaker.AcademicLevel,
 		&createdSpeaker.Institution, &createdSpeaker.Career, &createdSpeaker.Biografia,
 		&createdSpeaker.ProfilePhotoURL, &createdSpeaker.InstitutionalLogoURL,
 		&createdSpeaker.ConferenceName, &createdSpeaker.SuggestedDate,
-		&createdSpeaker.AudienceCapacity, &createdSpeaker.Phone, &createdSpeaker.SocialMedia,
-		&createdSpeaker.AcceptedTerms, &createdSpeaker.CreatedAt, &createdSpeaker.UpdatedAt,
+		&createdSpeaker.SuggestedTime, &createdSpeaker.AudienceCapacity,
+		&createdSpeaker.Phone, &createdSpeaker.SocialMedia,
+		&createdSpeaker.AcceptedTerms, &createdSpeaker.VenueID, &createdSpeaker.CreatedAt, &createdSpeaker.UpdatedAt,
 	)
 
 	if err != nil {
@@ -262,9 +316,11 @@ func (h *SpeakerHandler) UpdateSpeaker(c *gin.Context) {
 	biografia := c.PostForm("biografia")
 	conferenceName := c.PostForm("conference_name")
 	suggestedDate := c.PostForm("suggested_date")
+	suggestedTime := c.PostForm("suggested_time")
 	audienceCapacityStr := c.PostForm("audience_capacity")
 	phone := c.PostForm("phone")
 	socialMedia := c.PostForm("social_media")
+	venueIDStr := c.PostForm("venue_id")
 
 	query := "UPDATE speakers SET updated_at = NOW()"
 	args := []interface{}{}
@@ -276,6 +332,10 @@ func (h *SpeakerHandler) UpdateSpeaker(c *gin.Context) {
 		argNum++
 	}
 	if academicLevel != "" {
+		if !isValidAcademicLevel(academicLevel) {
+			c.JSON(http.StatusBadRequest, models.ErrorResponse{Message: "Nivel academico invalido"})
+			return
+		}
 		query += fmt.Sprintf(", academic_level = $%d", argNum)
 		args = append(args, academicLevel)
 		argNum++
@@ -302,18 +362,32 @@ func (h *SpeakerHandler) UpdateSpeaker(c *gin.Context) {
 	}
 	if suggestedDate != "" {
 		parsedDate, err := time.Parse("2006-01-02", suggestedDate)
-		if err == nil {
-			query += fmt.Sprintf(", suggested_date = $%d", argNum)
-			args = append(args, parsedDate)
-			argNum++
+		if err != nil {
+			c.JSON(http.StatusBadRequest, models.ErrorResponse{Message: "Fecha invalida. Usa formato YYYY-MM-DD"})
+			return
 		}
+		query += fmt.Sprintf(", suggested_date = $%d", argNum)
+		args = append(args, parsedDate)
+		argNum++
+	}
+	if suggestedTime != "" {
+		if !isValidSessionTime(suggestedTime) {
+			c.JSON(http.StatusBadRequest, models.ErrorResponse{Message: "Hora invalida. Usa formato HH:MM"})
+			return
+		}
+		query += fmt.Sprintf(", suggested_time = $%d", argNum)
+		args = append(args, suggestedTime)
+		argNum++
 	}
 	if audienceCapacityStr != "" {
-		if capacity, err := strconv.Atoi(audienceCapacityStr); err == nil {
-			query += fmt.Sprintf(", audience_capacity = $%d", argNum)
-			args = append(args, capacity)
-			argNum++
+		capacity, err := strconv.Atoi(audienceCapacityStr)
+		if err != nil || capacity <= 0 {
+			c.JSON(http.StatusBadRequest, models.ErrorResponse{Message: "El cupo debe ser un numero mayor a cero"})
+			return
 		}
+		query += fmt.Sprintf(", audience_capacity = $%d", argNum)
+		args = append(args, capacity)
+		argNum++
 	}
 	if phone != "" {
 		query += fmt.Sprintf(", phone = $%d", argNum)
@@ -324,6 +398,23 @@ func (h *SpeakerHandler) UpdateSpeaker(c *gin.Context) {
 		query += fmt.Sprintf(", social_media = $%d", argNum)
 		args = append(args, socialMedia)
 		argNum++
+	}
+	
+	if venueIDStr != "" {
+		if venueIDStr == "null" {
+			query += ", venue_id = NULL"
+		} else if vID, err := strconv.Atoi(venueIDStr); err == nil {
+			if !h.venueExists(vID) {
+				c.JSON(http.StatusBadRequest, models.ErrorResponse{Message: "Recinto invalido"})
+				return
+			}
+			query += fmt.Sprintf(", venue_id = $%d", argNum)
+			args = append(args, vID)
+			argNum++
+		} else {
+			c.JSON(http.StatusBadRequest, models.ErrorResponse{Message: "Recinto invalido"})
+			return
+		}
 	}
 
 	// Procesar nueva foto de perfil si se envió
@@ -349,8 +440,8 @@ func (h *SpeakerHandler) UpdateSpeaker(c *gin.Context) {
 	query += fmt.Sprintf(` WHERE id = $%d
 		RETURNING id, full_name, academic_level, institution, career, biografia,
 		          profile_photo_url, institutional_logo_url, conference_name,
-		          suggested_date, audience_capacity, phone, social_media,
-		          accepted_terms, created_at, updated_at`, argNum)
+		          suggested_date, suggested_time, audience_capacity, phone, social_media,
+		          accepted_terms, venue_id, created_at, updated_at`, argNum)
 	args = append(args, id)
 
 	var speaker models.Speaker
@@ -359,8 +450,9 @@ func (h *SpeakerHandler) UpdateSpeaker(c *gin.Context) {
 		&speaker.Institution, &speaker.Career, &speaker.Biografia,
 		&speaker.ProfilePhotoURL, &speaker.InstitutionalLogoURL,
 		&speaker.ConferenceName, &speaker.SuggestedDate,
+		&speaker.SuggestedTime,
 		&speaker.AudienceCapacity, &speaker.Phone, &speaker.SocialMedia,
-		&speaker.AcceptedTerms, &speaker.CreatedAt, &speaker.UpdatedAt,
+		&speaker.AcceptedTerms, &speaker.VenueID, &speaker.CreatedAt, &speaker.UpdatedAt,
 	)
 
 	if err == sql.ErrNoRows {

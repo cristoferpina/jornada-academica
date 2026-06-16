@@ -3,7 +3,7 @@
 # 🚀 Quick Start Script for Go Backend - Linux/macOS
 
 echo "============================================"
-echo "🚀 Jornada Académica - Go Backend Setup"
+echo "🚀 13va Jornada Academica y Cultural - Go Backend Setup"
 echo "============================================"
 
 # Check if .env file exists

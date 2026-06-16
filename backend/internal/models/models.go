@@ -11,6 +11,8 @@ type User struct {
 	Role             string     `json:"role" binding:"required,oneof=admin speaker attendee"`
 	RecoveryQuestion string     `json:"recovery_question"`
 	RecoveryAnswer   string     `json:"-"`
+	ResetPin         *string    `json:"-"`
+	ResetPinExpires  *time.Time `json:"-"`
 	CreatedAt        time.Time  `json:"created_at"`
 	LastLogin        *time.Time `json:"last_login"`
 	IsActive         bool       `json:"is_active"`
@@ -34,7 +36,7 @@ type LoginRequest struct {
 // RegisterRequest estructura para registro de usuarios
 type RegisterRequest struct {
 	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required,min=6"`
+	Password string `json:"password" binding:"required,min=8"`
 	Name     string `json:"name"`
 	Role     string `json:"role"`
 }
@@ -49,14 +51,26 @@ type AdminStudentRequest struct {
 
 // Student representa la información institucional cargada por el administrador.
 type Student struct {
-	ID        int       `json:"id"`
-	Matricula string    `json:"matricula" binding:"required"`
-	FirstName string    `json:"first_name" binding:"required"`
-	LastName  string    `json:"last_name" binding:"required"`
-	Career    string    `json:"career" binding:"required"`
-	UserID    *int      `json:"user_id"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID             int       `json:"id"`
+	Matricula      string    `json:"matricula" binding:"required"`
+	FirstName      string    `json:"first_name" binding:"required"`
+	LastName       string    `json:"last_name" binding:"required"`
+	Career         string    `json:"career" binding:"required"`
+	UserID         *int      `json:"user_id"`
+	PriorityPoints int       `json:"priority_points"`
+	CreatedAt      time.Time `json:"created_at"`
+	UpdatedAt      time.Time `json:"updated_at"`
+}
+
+// SpeakerRegistration representa la inscripción de un alumno a una conferencia
+type SpeakerRegistration struct {
+	ID           int       `json:"id"`
+	SpeakerID    int       `json:"speaker_id"`
+	StudentID    int       `json:"student_id"`
+	Status       string    `json:"status"` // confirmed, waitlist
+	RegisteredAt time.Time `json:"registered_at"`
+	Speaker      *Speaker  `json:"speaker,omitempty"`
+	Student      *Student  `json:"student,omitempty"`
 }
 
 // StudentLookupResponse expone la información mostrable antes de confirmar con contraseña.
@@ -73,7 +87,7 @@ type StudentLookupResponse struct {
 // StudentRegisterRequest registra al alumno usando su matrícula y contraseña.
 type StudentRegisterRequest struct {
 	Matricula string `json:"matricula" binding:"required"`
-	Password  string `json:"password" binding:"required,min=6"`
+	Password  string `json:"password" binding:"required,min=8"`
 }
 
 // ForgotPasswordRequest estructura para solicitar recuperación
@@ -81,17 +95,35 @@ type ForgotPasswordRequest struct {
 	Matricula string `json:"matricula" binding:"required"`
 }
 
+// RequestResetRequest para la recuperación por email (flow tipo PIN)
+type RequestResetRequest struct {
+	Email string `json:"email" binding:"required,email"`
+}
+
+// VerifyPinRequest para verificar el PIN enviado por email
+type VerifyPinRequest struct {
+	Email string `json:"email" binding:"required,email"`
+	Pin   string `json:"pin" binding:"required"`
+}
+
+// UpdatePasswordWithPinRequest para cambiar la contraseña usando el PIN verificado
+type UpdatePasswordWithPinRequest struct {
+	Email       string `json:"email" binding:"required,email"`
+	Pin         string `json:"pin" binding:"required"`
+	NewPassword string `json:"new_password" binding:"required,min=8"`
+}
+
 // ResetPasswordRequest estructura para aplicar nuevo password
 type ResetPasswordRequest struct {
 	Matricula    string `json:"matricula" binding:"required"`
 	SecretAnswer string `json:"secret_answer" binding:"required"`
-	NewPassword  string `json:"new_password" binding:"required,min=6"`
+	NewPassword  string `json:"new_password" binding:"required,min=8"`
 }
 
 // ChangePasswordRequest estructura para cambiar la contraseña autenticado.
 type ChangePasswordRequest struct {
 	CurrentPassword string `json:"current_password" binding:"required"`
-	NewPassword     string `json:"new_password" binding:"required,min=6"`
+	NewPassword     string `json:"new_password" binding:"required,min=8"`
 }
 
 // LoginResponse estructura de respuesta del login
@@ -120,13 +152,17 @@ type Speaker struct {
 	InstitutionalLogoURL *string    `json:"institutional_logo_url"`
 	ConferenceName       string     `json:"conference_name" binding:"required"`
 	SuggestedDate        *time.Time `json:"suggested_date"`
+	SuggestedTime        *string    `json:"suggested_time"`
 	AudienceCapacity     *int       `json:"audience_capacity"`
 	Phone                *string    `json:"phone"`
-	SocialMedia          *string    `json:"social_media"`
-	AcceptedTerms        bool       `json:"accepted_terms" binding:"required"`
-	CreatedAt            time.Time  `json:"created_at"`
-	UpdatedAt            time.Time  `json:"updated_at"`
-}
+	SocialMedia          *string   `json:"social_media"`
+	AcceptedTerms        bool      `json:"accepted_terms"`
+	VenueID              *int      `json:"venue_id"`
+	Venue                *Venue    `json:"venue,omitempty"`
+	CreatedAt            time.Time `json:"created_at"`
+	UpdatedAt            time.Time `json:"updated_at"`
+	}
+
 
 // JWTClaims estructura para los claims del JWT
 type JWTClaims struct {
@@ -139,4 +175,57 @@ type JWTClaims struct {
 type ErrorResponse struct {
 	Message string `json:"message"`
 	Error   string `json:"error,omitempty"`
+}
+
+// Venue representa un recinto físico en la universidad
+type Venue struct {
+	ID           int       `json:"id"`
+	Name         string    `json:"name" binding:"required"`
+	Type         string    `json:"type" binding:"required"`
+	Building     *string   `json:"building"`
+	Floor        *string   `json:"floor"`
+	Capacity     *int      `json:"capacity"`
+	Status       string    `json:"status" binding:"required"`
+	Amenities    []string  `json:"amenities"`
+	Observations *string   `json:"observations"`
+	ImageURL     *string   `json:"image_url"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+}
+
+// Contest representa un certamen o concurso
+type Contest struct {
+	ID        int       `json:"id"`
+	Name      string    `json:"name" binding:"required"`
+	Category  string    `json:"category" binding:"required"`
+	Status    string    `json:"status"`
+	Date      time.Time `json:"date"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+// ContestRegistration representa la inscripción de uno o dos alumnos a un certamen
+type ContestRegistration struct {
+	ID               int       `json:"id"`
+	ContestID        int       `json:"contest_id"`
+	Student1ID       int       `json:"student1_id"`
+	Student2ID       *int      `json:"student2_id"`
+	ArtisticActivity string    `json:"artistic_activity"`
+	Student1         *Student  `json:"student1,omitempty"`
+	Student2         *Student  `json:"student2,omitempty"`
+	CreatedAt        time.Time `json:"created_at"`
+}
+
+// PageantCandidate representa un candidato para el certamen Señorita y Joven UES
+type PageantCandidate struct {
+	ID               int       `json:"id"`
+	StudentID        int       `json:"student_id" binding:"required"`
+	PartnerID        *int      `json:"partner_id"`                  // Opcional para parejas
+	Category         string    `json:"category"`                   // 'Señorita', 'Joven' o 'Pareja'
+	RepresentativeOf string    `json:"representative_of"`          // Carrera o facultad
+	ArtisticActivity string    `json:"artistic_activity"`          // Talento artístico
+	PhotoURL         string    `json:"photo_url"`
+	Bio              string    `json:"bio"`
+	CreatedAt        time.Time `json:"created_at"`
+	Student          *Student  `json:"student,omitempty"`
+	Partner          *Student  `json:"partner,omitempty"`
 }

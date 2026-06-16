@@ -1,0 +1,21 @@
+# Variables de entorno (¡NUNCA SUBIR ESTO!)
+.env
+.env.*
+backend/.env
+
+# Node.js / Frontend
+node_modules/
+frontend/node_modules/
+frontend/dist/
+
+# Go / Backend
+backend/backend.exe
+backend/backend
+
+# Archivos subidos de ponentes
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Varios
+.DS_Store
+Thumbs.db

@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import PasswordStrengthMeter from '../components/PasswordStrengthMeter';
 import loginBackground from '../assets/IMG20251113170442.jpg';
 import loginBrandImg from '../assets/Gemini_Generated_Image_yanjdwyanjdwyanj-removebg-preview.png';
+import { API_URL as BASE_API_URL } from '../config';
 
-const API_URL = 'http://localhost:3000/api/auth';
+const API_URL = `${BASE_API_URL}/auth`;
 
 function Register() {
   const [matricula, setMatricula] = useState('');
@@ -97,13 +99,13 @@ function Register() {
         className="hidden lg:flex lg:w-1/2 relative overflow-hidden items-center justify-center p-12"
         style={{
           backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url(${loginBackground})`,
-          backgroundColor: '#3e690d',
+          backgroundColor: '#80ba26',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}
       >
         <div className="relative z-10 text-white max-w-lg flex items-center justify-center">
-          <img src={loginBrandImg} alt="13va Jornada Académica y Cultural 2026" className="max-w-full h-48 object-contain" />
+          <img src={loginBrandImg} alt="13va Jornada Academica y Cultural" className="max-w-full h-48 object-contain" />
         </div>
         <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-secondary-container/20 rounded-full blur-3xl"></div>
         <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-96 h-96 bg-black/20 rounded-full blur-3xl"></div>
@@ -232,6 +234,7 @@ function Register() {
                     <span className="material-symbols-outlined text-xl">{showPassword ? 'visibility_off' : 'visibility'}</span>
                   </button>
                 </div>
+                {password && <PasswordStrengthMeter password={password} />}
               </div>
 
               <div className="space-y-2">

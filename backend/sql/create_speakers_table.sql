@@ -13,6 +13,7 @@ CREATE TABLE speakers (
   phone VARCHAR(20),
   social_media VARCHAR(255),
   accepted_terms BOOLEAN NOT NULL DEFAULT false,
+  venue_id INTEGER REFERENCES venues(id) ON DELETE SET NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

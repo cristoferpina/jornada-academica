@@ -1,0 +1,15 @@
+INSERT INTO speakers (
+    full_name, academic_level, institution, career, biografia, 
+    conference_name, suggested_date, suggested_time, audience_capacity, 
+    phone, social_media, accepted_terms, venue_id, profile_photo_url, institutional_logo_url
+) VALUES 
+('Alejandra Moreno Leon', 'Doctorado', 'Tecnologico de Monterrey', 'Ingeniero en sistemas', 'Programadora Frontend', 'A Presentación de arte, del CSS como pincel y HTML como lienzo', '2026-12-07', '09:00', 30, '5555555555', 'https://www.linkedin.com/in/cristoferpiña/', true, NULL, NULL, NULL),
+('Carlos Villagrán', 'Maestría', 'UNAM', 'Ingeniería de Software', 'Arquitecto Cloud y consultor tecnológico con 10 años de experiencia.', 'El futuro de la nube y microservicios', '2026-12-07', '11:30', 30, '5555555555', 'https://www.linkedin.com/in/cristoferpiña/', true, NULL, NULL, NULL),
+('Elena Ramos', 'Licenciatura', 'IPN', 'Diseño Gráfico y Web', 'Especialista en UX/UI y diseño de interfaces accesibles.', 'Accesibilidad en aplicaciones web modernas', '2026-12-08', '10:00', 30, '5555555555', 'https://www.linkedin.com/in/cristoferpiña/', true, NULL, NULL, NULL),
+('Roberto Santos', 'Doctorado', 'UAM', 'Inteligencia Artificial', 'Investigador en IA y redes neuronales aplicadas a la educación.', 'Redes neuronales y su impacto social', '2026-12-08', '14:00', 30, '5555555555', 'https://www.linkedin.com/in/cristoferpiña/', true, NULL, NULL, NULL),
+('Sofia Ruiz', 'Maestría', 'Tecnologico de Monterrey', 'Ciberseguridad', 'Pentester profesional e instructora de seguridad informática.', 'Protegiendo tu infraestructura web', '2026-12-09', '09:15', 30, '5555555555', 'https://www.linkedin.com/in/cristoferpiña/', true, NULL, NULL, NULL),
+('Miguel Herrera', 'Licenciatura', 'UMB', 'Ingeniería en Sistemas', 'Desarrollador Fullstack apasionado por las tecnologías modernas.', 'Introducción práctica a React y Node.js', '2026-12-09', '13:45', 30, '5555555555', 'https://www.linkedin.com/in/cristoferpiña/', true, NULL, NULL, NULL),
+('Laura Mendez', 'Doctorado', 'UNAM', 'Ciencia de Datos', 'Científica de Datos enfocada en el análisis predictivo.', 'Machine Learning aplicado a la vida real', '2026-12-10', '10:30', 30, '5555555555', 'https://www.linkedin.com/in/cristoferpiña/', true, NULL, NULL, NULL),
+('Fernando Cruz', 'Maestría', 'IPN', 'Ingeniería en Redes', 'DevOps Engineer. Experto en automatización de flujos de trabajo.', 'Automatización con Docker y CI/CD', '2026-12-10', '15:00', 30, '5555555555', 'https://www.linkedin.com/in/cristoferpiña/', true, NULL, NULL, NULL),
+('Ana Gabriela Paz', 'Licenciatura', 'UAM', 'Informática', 'Tech Lead y mentora de mujeres en tecnología.', 'Liderazgo y metodologías ágiles en equipos IT', '2026-12-11', '11:00', 30, '5555555555', 'https://www.linkedin.com/in/cristoferpiña/', true, NULL, NULL, NULL),
+('Diego Silva', 'Doctorado', 'Tecnologico de Monterrey', 'Mecatrónica', 'Ingeniero especializado en robótica colaborativa.', 'El impacto de la robótica en la industria', '2026-12-11', '16:00', 30, '5555555555', 'https://www.linkedin.com/in/cristoferpiña/', true, NULL, NULL, NULL);

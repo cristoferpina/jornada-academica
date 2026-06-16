@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import PasswordStrengthMeter from '../components/PasswordStrengthMeter';
 
-const API_URL = 'http://localhost:3000/api/auth';
+import { API_URL as BASE_API_URL } from '../config';
+const API_URL = `${BASE_API_URL}/auth`;
 
 function CambiarContraseña() {
   const navigate = useNavigate();
@@ -158,8 +160,8 @@ function CambiarContraseña() {
     <div className="min-h-screen bg-surface py-8 sm:py-16 px-4 sm:px-6">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
-        <div className="mb-6 sm:mb-8 rounded-xl sm:rounded-2xl border border-[#3e690d]/15 bg-gradient-to-r from-[#f4f8ee] via-white to-[#eef6df] p-4 sm:p-6 shadow-[0_12px_50px_rgba(62,105,13,0.08)]">
-          <p className="text-xs font-bold tracking-[0.1em] text-[#3e690d] uppercase">Cuenta del alumno</p>
+        <div className="mb-6 sm:mb-8 rounded-xl sm:rounded-2xl border border-[#80ba26]/15 bg-gradient-to-r from-[#f4f9eb] via-white to-[#ebf3dc] p-4 sm:p-6 shadow-[0_12px_50px_rgba(62,105,13,0.08)]">
+          <p className="text-xs font-bold tracking-[0.1em] text-[#80ba26] uppercase">Cuenta del alumno</p>
           <h1 className="text-2xl sm:text-3xl font-black text-on-surface mt-1">Cambiar contraseña</h1>
           <p className="text-xs sm:text-sm text-zinc-600 mt-2 sm:mt-3 max-w-2xl">
             Actualiza tu contraseña desde esta sesión. Si no recuerdas tu contraseña actual, usa recuperación de acceso.
@@ -245,6 +247,7 @@ function CambiarContraseña() {
                   placeholder="Ingresa tu nueva contraseña"
                   className="w-full rounded-lg sm:rounded-xl border border-zinc-200 bg-white px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-zinc-900 focus:border-primary focus:ring-0 placeholder-zinc-400"
                 />
+                {newPassword && <PasswordStrengthMeter password={newPassword} />}
               </div>
               <div>
                 <label className="block text-xs sm:text-sm font-semibold text-zinc-700 mb-2">Confirmar nueva contraseña</label>
@@ -324,6 +327,7 @@ function CambiarContraseña() {
                       placeholder="Ingresa tu nueva contraseña"
                       className="w-full rounded-lg sm:rounded-xl border border-zinc-200 bg-white px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-zinc-900 focus:border-primary focus:ring-0 placeholder-zinc-400"
                     />
+                    {recoveryNewPassword && <PasswordStrengthMeter password={recoveryNewPassword} />}
                   </div>
                   <div>
                     <label className="block text-xs sm:text-sm font-semibold text-zinc-700 mb-2">Confirmar nueva contraseña</label>

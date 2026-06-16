@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 
@@ -15,6 +16,7 @@ func AuthMiddleware(jwtSecret string) gin.HandlerFunc {
 		// Obtener token del header Authorization
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
+			log.Printf("🔓 AuthMiddleware: No se proporcionó el encabezado Authorization")
 			c.JSON(http.StatusUnauthorized, models.ErrorResponse{
 				Message: "Token no proporcionado",
 			})
@@ -25,6 +27,7 @@ func AuthMiddleware(jwtSecret string) gin.HandlerFunc {
 		// Extraer el token del formato "Bearer <token>"
 		parts := strings.Split(authHeader, " ")
 		if len(parts) != 2 || parts[0] != "Bearer" {
+			log.Printf("🔓 AuthMiddleware: Formato de token inválido: %s", authHeader)
 			c.JSON(http.StatusUnauthorized, models.ErrorResponse{
 				Message: "Formato de token inválido",
 			})
@@ -43,6 +46,7 @@ func AuthMiddleware(jwtSecret string) gin.HandlerFunc {
 		})
 
 		if err != nil || !token.Valid {
+			log.Printf("🔓 AuthMiddleware: Token inválido: %v", err)
 			c.JSON(http.StatusUnauthorized, models.ErrorResponse{
 				Message: "Token inválido",
 			})
@@ -52,6 +56,7 @@ func AuthMiddleware(jwtSecret string) gin.HandlerFunc {
 
 		claims, ok := token.Claims.(jwt.MapClaims)
 		if !ok {
+			log.Printf("🔓 AuthMiddleware: No se pudieron extraer los claims")
 			c.JSON(http.StatusUnauthorized, models.ErrorResponse{
 				Message: "Claims inválidos",
 			})
@@ -65,6 +70,8 @@ func AuthMiddleware(jwtSecret string) gin.HandlerFunc {
 			Email: claims["email"].(string),
 			Role:  claims["role"].(string),
 		}
+
+		log.Printf("🔓 AuthMiddleware: Usuario autenticado: %s (%s)", userClaims.Email, userClaims.Role)
 
 		// Guardar claims en el contexto
 		c.Set("user", userClaims)

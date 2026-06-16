@@ -6,7 +6,7 @@ $Yellow = 'Yellow'
 $Red = 'Red'
 
 Write-Host "============================================" -ForegroundColor $Green
-Write-Host "🚀 Jornada Académica - Go Backend Setup" -ForegroundColor $Green
+Write-Host "🚀 13va Jornada Academica y Cultural - Go Backend Setup" -ForegroundColor $Green
 Write-Host "============================================" -ForegroundColor $Green
 
 # Check if .env file exists

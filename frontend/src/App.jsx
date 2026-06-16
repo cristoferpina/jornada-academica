@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-const API_URL = 'http://localhost:3000/api';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { API_URL } from './config';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
 import logoBlackImg from './assets/images/logo/UES-BLACK.png';
 import heroVideo from './assets/videos/ues.mp4';
 import conferencista1Img from './assets/images/conferencistas/1.png';
@@ -19,10 +19,6 @@ import ResetPassword from './pages/ResetPassword';
 import CambiarContraseña from './pages/CambiarContraseña';
 import AdminDashboard from './pages/AdminDashboard';
 import StudentDashboard from './pages/StudentDashboard';
-import ConferencistasSection from './sections/mosaico/ConferencistasSection';
-import EscenariosSection from './sections/mosaico/EscenariosSection';
-import ConferenciasSection from './sections/mosaico/ConferenciasSection';
-import InstitucionesInvitadasMosaicoSection from './sections/mosaico/InstitucionesInvitadasMosaicoSection';
 
 // TopNavBar Component
 function TopNavBar() {
@@ -53,7 +49,7 @@ function TopNavBar() {
   };
 
   return (
-    <nav className="sticky top-0 z-50 w-full bg-[#2b5000] shadow-sm border-b border-[#1a3000]">
+    <nav className="sticky top-0 z-50 w-full bg-[#608c1d] shadow-sm border-b border-[#2d420d]">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Main Navbar */}
         <div className="flex h-16 items-center justify-between">
@@ -73,7 +69,7 @@ function TopNavBar() {
             <Link to="/" className="flex items-center gap-2 min-w-0">
               <img
                 src={logoBlackImg}
-                alt="Logo Jornada Académica"
+                alt="13va Jornada Academica y Cultural"
                 className="h-9 w-auto object-contain brightness-0 invert"
               />
             </Link>
@@ -100,7 +96,7 @@ function TopNavBar() {
             
             <Link
               to="/login"
-              className="hidden sm:inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-[#1a3000] rounded-md hover:bg-[#0f1a00] transition-colors border border-white/20"
+              className="hidden sm:inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-[#2d420d] rounded-md hover:bg-[#1a2608] transition-colors border border-white/20"
             >
               Iniciar Sesión
               <span className="material-symbols-outlined text-base">login</span>
@@ -110,40 +106,40 @@ function TopNavBar() {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div id="menu" className="md:hidden border-t border-[#1a3000] bg-[#1a3000] py-4">
+          <div id="menu" className="md:hidden border-t border-[#2d420d] bg-[#2d420d] py-4">
             <div className="space-y-2">
               <a
                 href="/#evento"
                 onClick={(e) => handleNavClick(e, 'evento')}
-                className="block px-4 py-2 text-white hover:bg-[#2b5000] rounded"
+                className="block px-4 py-2 text-white hover:bg-[#608c1d] rounded"
               >
                 El Evento
               </a>
               <a
                 href="/#programa"
                 onClick={(e) => handleNavClick(e, 'programa')}
-                className="block px-4 py-2 text-white hover:bg-[#2b5000] rounded"
+                className="block px-4 py-2 text-white hover:bg-[#608c1d] rounded"
               >
                 Programa por Día
               </a>
               <a
                 href="/#instituciones"
                 onClick={(e) => handleNavClick(e, 'instituciones')}
-                className="block px-4 py-2 text-white hover:bg-[#2b5000] rounded"
+                className="block px-4 py-2 text-white hover:bg-[#608c1d] rounded"
               >
                 Instituciones
               </a>
               <a
                 href="/#contacto"
                 onClick={(e) => handleNavClick(e, 'contacto')}
-                className="block px-4 py-2 text-white hover:bg-[#2b5000] rounded"
+                className="block px-4 py-2 text-white hover:bg-[#608c1d] rounded"
               >
                 Contacto
               </a>
               <Link
                 to="/login"
                 onClick={() => setMobileMenuOpen(false)}
-                className="block mt-4 px-4 py-2 text-center text-white bg-[#0f1a00] rounded hover:bg-black font-semibold"
+                className="block mt-4 px-4 py-2 text-center text-white bg-[#1a2608] rounded hover:bg-black font-semibold"
               >
                 Iniciar Sesión
               </Link>
@@ -160,15 +156,15 @@ function CountdownItem({ value, label }) {
   return (
     <div className="flex flex-col items-center m-2">
       <div className="relative group">
-        <div className="absolute inset-0 bg-[#2b5000] rounded-2xl blur-lg opacity-20 group-hover:opacity-40 transition-opacity duration-500"></div>
-        <div className="relative bg-white border border-[#2b5000]/10 rounded-2xl w-28 h-28 md:w-36 md:h-36 flex items-center justify-center shadow-lg group-hover:-translate-y-2 group-hover:shadow-2xl transition-all duration-500 overflow-hidden">
+        <div className="absolute inset-0 bg-[#608c1d] rounded-2xl blur-lg opacity-20 group-hover:opacity-40 transition-opacity duration-500"></div>
+        <div className="relative bg-white border border-[#608c1d]/10 rounded-2xl w-28 h-28 md:w-36 md:h-36 flex items-center justify-center shadow-lg group-hover:-translate-y-2 group-hover:shadow-2xl transition-all duration-500 overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-black/5 to-transparent"></div>
-          <span className="text-5xl md:text-7xl font-black text-[#1a3000] drop-shadow-sm">
+          <span className="text-5xl md:text-7xl font-black text-[#2d420d] drop-shadow-sm">
             {String(value).padStart(2, '0')}
           </span>
         </div>
       </div>
-      <p className="text-[#2b5000] font-bold uppercase mt-5 tracking-[0.25em] text-sm md:text-base">{label}</p>
+      <p className="text-[#608c1d] font-bold uppercase mt-5 tracking-[0.25em] text-sm md:text-base">{label}</p>
     </div>
   );
 }
@@ -214,7 +210,9 @@ function formatProgramDate(dateValue) {
     return null;
   }
 
-  const parts = dateValue.split('-').map((part) => Number(part));
+  // Extract YYYY-MM-DD from ISO string or standard date string
+  const dateStr = dateValue.split('T')[0];
+  const parts = dateStr.split('-').map((part) => Number(part));
   if (parts.length !== 3 || parts.some((part) => Number.isNaN(part))) {
     return null;
   }
@@ -252,7 +250,7 @@ function groupSpeakersByDate(speakers) {
     };
 
     entry.activities.push({
-      time: 'Pendiente',
+      time: speaker.suggested_time || 'Pendiente',
       title: speaker.conference_name || 'Ponencia registrada',
       location: [speaker.full_name, speaker.institution, speaker.career].filter(Boolean).join(' · '),
       details: [
@@ -271,7 +269,15 @@ function groupSpeakersByDate(speakers) {
 
   return Array.from(grouped.entries())
     .sort(([leftKey], [rightKey]) => leftKey.localeCompare(rightKey))
-    .map(([, value]) => value);
+    .map(([, value]) => {
+      // Sort activities within the day by time
+      value.activities.sort((a, b) => {
+        if (a.time === 'Pendiente') return 1;
+        if (b.time === 'Pendiente') return -1;
+        return a.time.localeCompare(b.time);
+      });
+      return value;
+    });
 }
 
 function Countdown() {
@@ -322,92 +328,497 @@ function HeroSection() {
 
 // Mosaico Section
 function MosaicoSection() {
-  const tiles = [
-    {
-      id: 0,
-      title: "Conferencistas",
-      mobileImg: conferencista1Img,
-      desktopImg: conferencista1Img,
-      alt: "Conferencistas",
-      overlayColor: "bg-green-700/60",
-      hoverColor: "group-hover:bg-[#73243c]/70",
-      href: "#conferencistas"
-    },
-    {
-      id: 1,
-      title: "Escenarios",
-      mobileImg: conferencista2Img,
-      desktopImg: conferencista2Img,
-      alt: "Escenarios",
-      overlayColor: "bg-green-700/60",
-      hoverColor: "group-hover:bg-[#73243c]/70",
-      href: "#escenarios"
-    },
-    {
-      id: 2,
-      title: "Conferencias",
-      mobileImg: conferencista3Img,
-      desktopImg: conferencista3Img,
-      alt: "Conferencias",
-      overlayColor: "bg-green-700/60",
-      hoverColor: "group-hover:bg-[#73243c]/70",
-      href: "#conferencias"
-    },
-    {
-      id: 3,
-      title: "Instituciones Invitadas",
-      mobileImg: conferencista4Img,
-      desktopImg: conferencista4Img,
-      alt: "Instituciones Invitadas",
-      overlayColor: "bg-green-700/60",
-      hoverColor: "group-hover:bg-[#73243c]/70",
-      href: "#instituciones-invitadas"
+  const navigate = useNavigate();
+  const [showModal, setShowModal] = useState(false);
+  const [modalType, setModalType] = useState(null); // 'conferencistas', 'escenarios', etc.
+  const [venues, setVenues] = useState([]);
+  const [speakers, setSpeakers] = useState([]);
+  const [selectedVenue, setSelectedVenue] = useState(null);
+  const [selectedSpeaker, setSelectedSpeaker] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const fetchVenues = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_URL.replace('/api', '')}/api/venues`);
+      const data = await res.json();
+      setVenues(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Error fetching venues:", err);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const fetchSpeakers = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_URL.replace('/api', '')}/api/speakers`);
+      const data = await res.json();
+      setSpeakers(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Error fetching speakers:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleTileClick = (e, type) => {
+    e.preventDefault();
+    setModalType(type);
+    if (type === 'escenarios') {
+      fetchVenues();
+    } else if (type === 'conferencistas' || type === 'instituciones-invitadas' || type === 'conferencias') {
+      fetchSpeakers();
+    }
+    setShowModal(true);
+  };
+
+  const getUniqueInstitutions = () => {
+    const institutionsMap = new Map();
+    speakers.forEach(s => {
+      if (s.institution && !institutionsMap.has(s.institution)) {
+        institutionsMap.set(s.institution, s.institutional_logo_url);
+      }
+    });
+    return Array.from(institutionsMap.entries()).map(([name, logo]) => ({ name, logo }));
+  };
+
+  const uniqueInstitutions = getUniqueInstitutions();
+
+  const tiles = [
+    { id: 'conferencistas', title: "Conferencistas", mobileImg: conferencista1Img, desktopImg: conferencista1Img, overlayColor: "bg-primary/60" },
+    { id: 'escenarios', title: "Escenarios", mobileImg: conferencista2Img, desktopImg: conferencista2Img, overlayColor: "bg-primary/60" },
+    { id: 'conferencias', title: "Conferencias", mobileImg: conferencista3Img, desktopImg: conferencista3Img, overlayColor: "bg-primary/60" },
+    { id: 'instituciones-invitadas', title: "Instituciones Invitadas", mobileImg: conferencista4Img, desktopImg: conferencista4Img, overlayColor: "bg-primary/60" }
   ];
 
+  const closeModal = () => {
+    setShowModal(false);
+    setModalType(null);
+    setSelectedVenue(null);
+    setSelectedSpeaker(null);
+  };
+
+  const BASE_URL_PUBLIC = API_URL.replace('/api', '');
+
   return (
-    <section className="py-8 bg-white relative z-20 -mt-4 shadow-xl rounded-t-3xl scroll-mt-20" id="mosaico">
-      <div className="w-full px-4 sm:px-6 lg:px-8">
-        <div className="mosaico grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" formato="grid" escala="chica" coloractivo="blue" colorinactivo="blue" controlesocultos="0" anchosfijos="0" role="rowgroup">
-          {tiles.map((tile) => (
-            <div 
-              key={tile.id}
-              className="azulejo relative overflow-hidden rounded-xl aspect-[4/3] group" 
-              tipo-de-fondo="imagen" 
-              estado="inactivo" 
-              funcionalidad="enlace" 
-              etiqueta="texto-centrado" 
-              role="row" 
-              orden_lg="0" 
-              orden_md="0" 
-              orden_sm={tile.id < 2 ? "0" : "2"} 
-              azulejo-id={tile.id} 
-              style={{ order: 0 }}
-            >
-              <div className="azulejo__contenedor azulejo__contenedor-- w-full h-full">
-                <a href={tile.href || "#"} className="w-full h-full block">
-                  <div className="azulejo__imagen_de_fondo azulejo__imagen_de_fondo-- w-full h-full">
-                    <img 
-                      className="azulejo__imagen_de_fondo__img azulejo__imagen_de_fondo__img--chica w-full h-full object-cover md:hidden" 
-                      src={tile.mobileImg} 
-                      alt={tile.alt} 
-                    />
-                    <img 
-                      className="azulejo__imagen_de_fondo__img azulejo__imagen_de_fondo__img--grande w-full h-full object-cover hidden md:block group-hover:scale-105 transition-transform duration-500" 
-                      src={tile.desktopImg} 
-                      alt={tile.alt} 
-                    />
+    <>
+      <section className="py-8 bg-white relative z-20 -mt-4 shadow-xl rounded-t-3xl scroll-mt-20" id="mosaico">
+        <div className="w-full px-4 sm:px-6 lg:px-8">
+          <div className="mosaico grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {tiles.map((tile) => (
+              <div 
+                key={tile.id}
+                className="azulejo relative overflow-hidden rounded-xl aspect-[4/3] group cursor-pointer" 
+                onClick={(e) => handleTileClick(e, tile.id)}
+              >
+                <div className="w-full h-full">
+                  <div className="w-full h-full">
+                    <img className="w-full h-full object-cover md:hidden" src={tile.mobileImg} alt={tile.title} />
+                    <img className="w-full h-full object-cover hidden md:block group-hover:scale-105 transition-transform duration-500" src={tile.desktopImg} alt={tile.title} />
                   </div>
-                  <span className={`azulejo__contenido azulejo__contenido-- absolute inset-0 flex items-center justify-center text-white font-bold text-xl transition-colors ${tile.overlayColor} ${tile.hoverColor}`}>
+                  <span className={`absolute inset-0 flex items-center justify-center text-white font-bold text-xl transition-colors ${tile.overlayColor} group-hover:bg-[#73243c]/70`}>
                     {tile.title}
                   </span>
-                </a>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+
+      {/* Modal General */}
+      {showModal && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4 backdrop-blur-md animate-fade-in">
+          <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-slide-in">
+            {/* Modal Header */}
+            <div className="px-8 py-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+              <div>
+                <h2 className="text-2xl font-black text-[#2d420d]">
+                  {modalType === 'escenarios' ? (selectedVenue ? selectedVenue.name : 'Nuestros Recintos') : 
+                   modalType === 'conferencistas' ? (selectedSpeaker ? selectedSpeaker.full_name : 'Nuestros Conferencistas') :
+                   modalType === 'conferencias' ? (selectedSpeaker ? 'Detalles de la Conferencia' : 'Programa de Conferencias') :
+                   modalType === 'instituciones-invitadas' ? 'Instituciones Invitadas' :
+                   'En desarrollo'}
+                </h2>
+                <p className="text-sm text-gray-500">
+                  {modalType === 'escenarios' ? (selectedVenue ? 'Detalles técnicos y ubicación' : 'Explora los espacios de la Jornada') : 
+                   modalType === 'conferencistas' ? (selectedSpeaker ? selectedSpeaker.academic_level : 'Expertos que nos acompañan') :
+                   modalType === 'conferencias' ? (selectedSpeaker ? selectedSpeaker.conference_name : 'Explora los temas y regístrate') :
+                   modalType === 'instituciones-invitadas' ? 'Universidades y organizaciones que nos acompañan' :
+                   'Sección disponible próximamente'}
+                </p>
+              </div>
+              <button onClick={closeModal} className="p-2 hover:bg-gray-200 rounded-full transition-colors text-gray-400">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="flex-1 overflow-y-auto p-8">
+              {loading ? (
+                <div className="py-20 text-center">
+                  <div className="w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto"></div>
+                  <p className="mt-4 text-gray-400 font-medium">Cargando información...</p>
+                </div>
+              ) : modalType === 'escenarios' ? (
+                selectedVenue ? (
+                  /* DETALLE DEL RECINTO */
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-fade-in">
+                    <div>
+                      <div className="aspect-video rounded-2xl overflow-hidden shadow-lg border border-gray-100 bg-gray-100">
+                        {selectedVenue.image_url ? (
+                          <img src={`${BASE_URL_PUBLIC}${selectedVenue.image_url}`} alt={selectedVenue.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex flex-col items-center justify-center text-gray-300">
+                            <span className="material-symbols-outlined text-6xl">apartment</span>
+                            <p className="text-xs mt-2 uppercase font-bold tracking-widest text-gray-400">Sin imagen disponible</p>
+                          </div>
+                        )}
+                      </div>
+                      <div className="mt-6 flex flex-wrap gap-2">
+                        {selectedVenue.amenities?.map((a, i) => (
+                          <span key={i} className="px-3 py-1 bg-primary/10 text-primary text-xs font-bold rounded-full border border-primary/10">
+                            {a}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Capacidad</p>
+                          <p className="text-lg font-bold text-gray-700 flex items-center gap-2">
+                            <span className="material-symbols-outlined text-primary">groups</span>
+                            {selectedVenue.capacity} pers.
+                          </p>
+                        </div>
+                        <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Tipo</p>
+                          <p className="text-lg font-bold text-gray-700">{selectedVenue.type}</p>
+                        </div>
+                      </div>
+                      <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Ubicación</p>
+                        <p className="text-base font-bold text-gray-700">{selectedVenue.building}</p>
+                        <p className="text-sm text-gray-500">{selectedVenue.floor}</p>
+                      </div>
+                      {selectedVenue.observations && (
+                        <div>
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Notas Adicionales</p>
+                          <p className="text-sm text-gray-600 leading-relaxed italic border-l-4 border-primary/20 pl-4">
+                            "{selectedVenue.observations}"
+                          </p>
+                        </div>
+                      )}
+                      <button 
+                        onClick={() => setSelectedVenue(null)}
+                        className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold rounded-xl transition-all flex items-center justify-center gap-2"
+                      >
+                        <span className="material-symbols-outlined text-sm">arrow_back</span>
+                        Volver a la galería
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  /* GALERIA DE RECINTOS */
+                  venues.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
+                      {venues.map((v) => (
+                        <div 
+                          key={v.id} 
+                          onClick={() => setSelectedVenue(v)}
+                          className="group cursor-pointer bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all"
+                        >
+                          <div className="aspect-video relative overflow-hidden bg-gray-100">
+                            {v.image_url ? (
+                              <img src={`${BASE_URL_PUBLIC}${v.image_url}`} alt={v.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-gray-200">
+                                <span className="material-symbols-outlined text-4xl">apartment</span>
+                              </div>
+                            )}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+                              <span className="text-white text-xs font-bold flex items-center gap-1">
+                                Ver detalles <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                              </span>
+                            </div>
+                          </div>
+                          <div className="p-4">
+                            <h4 className="font-bold text-gray-800 group-hover:text-primary transition-colors">{v.name}</h4>
+                            <div className="flex items-center justify-between mt-2">
+                              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{v.type}</span>
+                              <div className="flex items-center gap-1 text-gray-400">
+                                <span className="material-symbols-outlined text-[14px]">groups</span>
+                                <span className="text-xs font-bold">{v.capacity}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-10">
+                      <span className="material-symbols-outlined text-6xl text-gray-100">apartment</span>
+                      <p className="mt-4 text-gray-400 font-medium">No hay recintos registrados aún.</p>
+                    </div>
+                  )
+                )
+              ) : modalType === 'instituciones-invitadas' ? (
+                /* GALERIA DE INSTITUCIONES */
+                uniqueInstitutions.length > 0 ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-8 animate-fade-in">
+                    {uniqueInstitutions.map((inst, i) => (
+                      <div key={i} className="flex flex-col items-center justify-center p-6 bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-all group">
+                        <div className="h-24 w-full flex items-center justify-center mb-4 p-2">
+                          {inst.logo ? (
+                            <img 
+                              src={`${BASE_URL_PUBLIC}${inst.logo}`} 
+                              alt={inst.name} 
+                              className="max-h-full max-w-full object-contain group-hover:scale-110 transition-transform duration-500" 
+                            />
+                          ) : (
+                            <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-200">
+                              <span className="material-symbols-outlined text-4xl">business</span>
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-sm font-bold text-gray-700 text-center leading-tight">{inst.name}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-10">
+                    <span className="material-symbols-outlined text-6xl text-gray-100">business</span>
+                    <p className="mt-4 text-gray-400 font-medium">No se han registrado instituciones aún.</p>
+                  </div>
+                )
+              ) : modalType === 'conferencistas' ? (
+                selectedSpeaker ? (
+                  /* DETALLE DEL PONENTE */
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8 animate-fade-in">
+                    <div className="md:col-span-1">
+                      <div className="aspect-square rounded-3xl overflow-hidden shadow-2xl border-4 border-white relative group">
+                        {selectedSpeaker.profile_photo_url ? (
+                          <img src={`${BASE_URL_PUBLIC}${selectedSpeaker.profile_photo_url}`} alt={selectedSpeaker.full_name} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full bg-primary/10 flex items-center justify-center text-primary">
+                            <span className="text-6xl font-black">{selectedSpeaker.full_name?.charAt(0)}</span>
+                          </div>
+                        )}
+                        {selectedSpeaker.institutional_logo_url && (
+                          <div className="absolute bottom-4 right-4 w-16 h-16 bg-white rounded-xl shadow-lg p-2 flex items-center justify-center">
+                            <img src={`${BASE_URL_PUBLIC}${selectedSpeaker.institutional_logo_url}`} className="max-w-full max-h-full object-contain" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="mt-6 space-y-3">
+                        <div className="flex items-center gap-3 text-gray-600">
+                          <span className="material-symbols-outlined text-primary">business</span>
+                          <span className="text-sm font-bold">{selectedSpeaker.institution || 'Independiente'}</span>
+                        </div>
+                        {selectedSpeaker.career && (
+                          <div className="flex items-center gap-3 text-gray-600">
+                            <span className="material-symbols-outlined text-primary">school</span>
+                            <span className="text-sm font-medium">{selectedSpeaker.career}</span>
+                          </div>
+                        )}
+                        {selectedSpeaker.social_media && (
+                          <a href={selectedSpeaker.social_media} target="_blank" className="flex items-center gap-3 text-primary hover:underline">
+                            <span className="material-symbols-outlined">link</span>
+                            <span className="text-sm font-bold">Ver perfil profesional</span>
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                    <div className="md:col-span-2 space-y-6">
+                      <div>
+                        <span className="px-3 py-1 bg-[#73243c]/10 text-[#73243c] text-[10px] font-bold uppercase tracking-widest rounded-full">
+                          Conferencia Magistral
+                        </span>
+                        <h3 className="text-3xl font-black text-gray-800 mt-2 leading-tight">
+                          {selectedSpeaker.conference_name}
+                        </h3>
+                      </div>
+
+                      <div className="bg-zinc-50 p-6 rounded-2xl border border-zinc-100">
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Semblanza Curricular</p>
+                        <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-line">
+                          {selectedSpeaker.biografia || selectedSpeaker.biography || 'No hay biografía disponible.'}
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        <div className="p-4 bg-white border border-gray-100 rounded-xl shadow-sm">
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 text-center">Nivel</p>
+                          <p className="text-sm font-bold text-gray-700 text-center">{selectedSpeaker.academic_level}</p>
+                        </div>
+                        <div className="p-4 bg-white border border-gray-100 rounded-xl shadow-sm">
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 text-center">Fecha</p>
+                          <p className="text-sm font-bold text-gray-700 text-center">{selectedSpeaker.suggested_date ? new Date(selectedSpeaker.suggested_date).toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' }) : 'Por confirmar'}</p>
+                        </div>
+                        <div className="p-4 bg-white border border-gray-100 rounded-xl shadow-sm col-span-2 sm:col-span-1">
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 text-center">Horario</p>
+                          <p className="text-sm font-bold text-gray-700 text-center">{selectedSpeaker.suggested_time || 'Por confirmar'}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-4 pt-4">
+                        <button 
+                          onClick={() => setSelectedSpeaker(null)}
+                          className="flex-1 py-4 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold rounded-2xl transition-all flex items-center justify-center gap-2"
+                        >
+                          <span className="material-symbols-outlined text-sm">arrow_back</span>
+                          Volver a ponentes
+                        </button>
+                        <Link 
+                          to="/login"
+                          className="flex-1 py-4 bg-primary hover:bg-primary-dark text-white font-bold rounded-2xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20"
+                        >
+                          Registrarme ahora
+                          <span className="material-symbols-outlined text-sm">how_to_reg</span>
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  /* GALERIA DE PONENTES */
+                  speakers.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in">
+                      {speakers.map((s) => (
+                        <div 
+                          key={s.id} 
+                          onClick={() => setSelectedSpeaker(s)}
+                          className="group cursor-pointer flex flex-col items-center text-center p-4 rounded-3xl hover:bg-zinc-50 transition-all border border-transparent hover:border-zinc-100"
+                        >
+                          <div className="w-32 h-32 rounded-full overflow-hidden mb-4 border-4 border-white shadow-xl group-hover:scale-105 transition-transform duration-500 ring-4 ring-primary/5">
+                            {s.profile_photo_url ? (
+                              <img src={`${BASE_URL_PUBLIC}${s.profile_photo_url}`} alt={s.full_name} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full bg-primary/10 flex items-center justify-center text-primary">
+                                <span className="text-3xl font-black">{s.full_name?.charAt(0)}</span>
+                              </div>
+                            )}
+                          </div>
+                          <h4 className="font-bold text-gray-800 leading-tight mb-1 group-hover:text-primary transition-colors">{s.full_name}</h4>
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">{s.institution || 'Ponente'}</p>
+                          <p className="text-xs text-zinc-500 line-clamp-2 italic px-2">
+                            "{s.conference_name}"
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-10">
+                      <span className="material-symbols-outlined text-6xl text-gray-100">groups</span>
+                      <p className="mt-4 text-gray-400 font-medium">Próximamente se anunciarán los ponentes.</p>
+                    </div>
+                  )
+                )
+              ) : modalType === 'conferencias' ? (
+                selectedSpeaker ? (
+                  /* DETALLE DE LA CONFERENCIA */
+                  <div className="animate-fade-in space-y-6 max-w-2xl mx-auto">
+                    <div>
+                      <span className="px-3 py-1 bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest rounded-full mb-3 inline-block">
+                        Conferencia Confirmada
+                      </span>
+                      <h3 className="text-4xl font-black text-gray-800 leading-tight">
+                        {selectedSpeaker.conference_name}
+                      </h3>
+                      <p className="text-gray-500 mt-2 text-lg">Impartida por <span className="font-bold text-gray-700">{selectedSpeaker.full_name}</span></p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="p-4 bg-zinc-50 border border-zinc-100 rounded-xl">
+                        <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Fecha Programada</p>
+                        <p className="text-sm font-bold text-zinc-700">{selectedSpeaker.suggested_date ? new Date(selectedSpeaker.suggested_date).toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' }) : 'Por confirmar'}</p>
+                      </div>
+                      <div className="p-4 bg-zinc-50 border border-zinc-100 rounded-xl">
+                        <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Hora Tentativa</p>
+                        <p className="text-sm font-bold text-zinc-700">{selectedSpeaker.suggested_time || 'Por confirmar'}</p>
+                      </div>
+                      <div className="p-4 bg-zinc-50 border border-zinc-100 rounded-xl col-span-2">
+                        <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Acerca del ponente</p>
+                        <p className="text-sm text-zinc-600 line-clamp-3">{selectedSpeaker.biografia || 'Sin descripción disponible.'}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-4 pt-4">
+                      <button 
+                        onClick={() => setSelectedSpeaker(null)}
+                        className="flex-1 py-4 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold rounded-2xl transition-all flex items-center justify-center gap-2"
+                      >
+                        <span className="material-symbols-outlined text-sm">arrow_back</span>
+                        Volver al programa
+                      </button>
+                      <Link 
+                        to="/login"
+                        className="flex-1 py-4 bg-primary hover:bg-primary-dark text-white font-bold rounded-2xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20"
+                      >
+                        Registrarme ahora
+                        <span className="material-symbols-outlined text-sm">how_to_reg</span>
+                      </Link>
+                    </div>
+                  </div>
+                ) : (
+                  /* LISTA DE CONFERENCIAS */
+                  speakers.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
+                      {speakers.map((s) => (
+                        <div 
+                          key={s.id} 
+                          onClick={() => setSelectedSpeaker(s)}
+                          className="group cursor-pointer p-6 bg-white rounded-3xl hover:bg-zinc-50 transition-all border border-zinc-100 hover:border-primary/30 shadow-sm flex flex-col h-full"
+                        >
+                          <div className="mb-4">
+                            <span className="inline-block px-2 py-1 bg-zinc-100 text-zinc-500 text-[9px] font-black uppercase tracking-widest rounded-md mb-3">
+                              {s.academic_level}
+                            </span>
+                            <h4 className="text-xl font-bold text-gray-800 leading-tight group-hover:text-primary transition-colors line-clamp-3">
+                              {s.conference_name}
+                            </h4>
+                          </div>
+                          
+                          <div className="mt-auto pt-4 border-t border-zinc-100">
+                            <div className="flex items-center gap-3">
+                              {s.profile_photo_url ? (
+                                <img src={`${BASE_URL_PUBLIC}${s.profile_photo_url}`} className="w-10 h-10 rounded-full object-cover border border-zinc-200" />
+                              ) : (
+                                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                                  {s.full_name?.charAt(0)}
+                                </div>
+                              )}
+                              <div>
+                                <p className="text-sm font-bold text-zinc-700 leading-none">{s.full_name}</p>
+                                <p className="text-[10px] text-zinc-400 mt-1">{s.institution || 'Ponente'}</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-10">
+                      <span className="material-symbols-outlined text-6xl text-gray-100">event_note</span>
+                      <p className="mt-4 text-gray-400 font-medium">Aún no hay conferencias programadas.</p>
+                    </div>
+                  )
+                )
+              ) : (
+                <div className="text-center py-12">
+                  <p className="text-gray-600 mb-6 font-medium text-lg">Esta sección estará disponible próximamente.</p>
+                  <button onClick={closeModal} className="bg-primary text-white px-8 py-3 rounded-xl hover:bg-[#608c1d] transition-all font-bold shadow-lg shadow-primary/20">
+                    Cerrar ventana
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -451,7 +862,7 @@ function ElEventoSection() {
     <section className="min-h-screen bg-gradient-to-br from-gray-50 to-white flex items-center justify-center scroll-mt-20" id="evento">
       <div className="max-w-7xl mx-auto px-6 w-full">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-headline font-extrabold mt-2 text-gray-900 mb-4">La Jornada Académica y Cultural</h2>
+          <h2 className="text-4xl font-headline font-extrabold mt-2 text-gray-900 mb-4">13va Jornada Academica y Cultural</h2>
           <p className="text-gray-600 max-w-3xl mx-auto text-lg">
             Un espacio de convergencia para el talento, la investigación, inovación y el arte.
           </p>
@@ -465,8 +876,8 @@ function ElEventoSection() {
               onClick={() => setActiveTab(key)}
               className={`flex items-center gap-3 px-6 py-4 rounded-xl font-semibold transition-all duration-300 ${
                 activeTab === key
-                  ? 'bg-[#2b5000] text-white shadow-lg scale-105'
-                  : 'bg-white text-gray-700 border-2 border-gray-200 hover:border-[#2b5000]'
+                  ? 'bg-[#608c1d] text-white shadow-lg scale-105'
+                  : 'bg-white text-gray-700 border-2 border-gray-200 hover:border-[#608c1d]'
               }`}
             >
               <span className="material-symbols-outlined">{tab.icon}</span>
@@ -488,21 +899,21 @@ function ElEventoSection() {
                     {/* Left Content */}
                     <div className="p-12 flex flex-col justify-center">
                       <div className="mb-8">
-                        <div className="w-16 h-16 bg-[#2b5000]/10 rounded-xl flex items-center justify-center text-[#2b5000] mb-6">
+                        <div className="w-16 h-16 bg-[#608c1d]/10 rounded-xl flex items-center justify-center text-[#608c1d] mb-6">
                           <span className="material-symbols-outlined text-4xl">{tab.icon}</span>
                         </div>
                         <h3 className="text-3xl font-bold text-gray-900 mb-4">{tab.title}</h3>
                         <p className="text-lg text-gray-600 mb-6 leading-relaxed">{tab.description}</p>
-                        <div className="w-12 h-1 bg-[#2b5000] rounded mb-6"></div>
+                        <div className="w-12 h-1 bg-[#608c1d] rounded mb-6"></div>
                         <p className="text-gray-700 leading-relaxed">{tab.details}</p>
                       </div>
                     </div>
 
                     {/* Right Visual */}
-                    <div className="hidden md:flex items-center justify-center bg-gradient-to-br from-[#2b5000]/5 to-[#2b5000]/10 p-12 overflow-hidden">
+                    <div className="hidden md:flex items-center justify-center bg-gradient-to-br from-[#608c1d]/5 to-[#608c1d]/10 p-12 overflow-hidden">
                       <img 
                         src={tab.image} 
-                        alt="Jornada Académica" 
+                        alt="13va Jornada Academica y Cultural" 
                         className="w-full h-full object-cover rounded-lg shadow-lg"
                       />
                     </div>
@@ -538,7 +949,7 @@ function CountdownSection() {
   return (
     <section className="py-24 bg-gradient-to-b from-gray-50 to-white relative overflow-hidden">
       {/* Elementos decorativos */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[#2b5000] opacity-5 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[#608c1d] opacity-5 rounded-full blur-3xl pointer-events-none"></div>
       <div className="max-w-7xl mx-auto px-6 text-center relative z-10">
         <h2 className="text-4xl font-headline font-extrabold mt-2 text-gray-900 mb-4 text-center">El evento empieza en:</h2>
         <p className="text-gray-500 max-w-2xl mx-auto mb-8">Prepárate para vivir una experiencia única llena de aprendizaje, innovación y cultura.</p>
@@ -650,18 +1061,27 @@ function ProgramaSection() {
               </div>
               <div className="md:col-span-3 space-y-4">
                 {currentDay.activities.map((activity, idx) => (
-                  <div key={idx} className="bg-surface-container flex flex-col md:flex-row items-center p-6 rounded-xl group hover:bg-white transition-colors border border-transparent hover:border-primary/10">
-                    <span className="text-lg font-black text-primary w-24">{activity.time}</span>
+                  <div key={idx} className="bg-surface-container flex flex-col md:flex-row items-start md:items-center p-6 rounded-xl group hover:bg-white transition-colors border border-transparent hover:border-primary/10 gap-4 md:gap-6">
+                    <span className="text-lg font-black text-primary w-24 shrink-0">{activity.time}</span>
                     <div className="flex-grow">
                       <h4 className="text-xl font-bold">{activity.title}</h4>
-                      <p className="text-on-surface-variant text-sm">{activity.location}</p>
+                      <p className="text-on-surface-variant text-sm font-medium mt-1">{activity.location}</p>
                       {activity.details ? (
-                        <p className="text-on-surface-variant text-sm mt-1">{activity.details}</p>
+                        <p className="text-on-surface-variant/70 text-xs mt-1.5">{activity.details}</p>
                       ) : null}
                     </div>
-                    <span className={`px-4 py-1 ${activity.tagBg} ${activity.tagText} rounded-full text-xs font-bold uppercase mt-4 md:mt-0`}>
-                      {activity.tag}
-                    </span>
+                    <div className="flex flex-col md:items-end gap-3 shrink-0">
+                      <span className={`px-4 py-1 ${activity.tagBg} ${activity.tagText} rounded-full text-[10px] font-bold uppercase tracking-widest text-center`}>
+                        {activity.tag}
+                      </span>
+                      <Link 
+                        to="/login"
+                        className="bg-primary text-on-primary hover:bg-primary/90 transition-colors px-6 py-2 rounded-xl text-sm font-bold uppercase tracking-wider flex items-center justify-center gap-2"
+                      >
+                        Registrarme
+                        <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                      </Link>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -675,46 +1095,101 @@ function ProgramaSection() {
 
 // Instituciones Invitadas Section
 function InstitucionesInvitadasSection() {
-  const logos = [
-    { id: 1, name: "Institución 1" },
-    { id: 2, name: "Institución 2" },
-    { id: 3, name: "Institución 3" },
-    { id: 4, name: "Institución 4" },
-    { id: 5, name: "Institución 5" },
-    { id: 6, name: "Institución 6" },
-    { id: 7, name: "Institución 7" },
-    { id: 8, name: "Institución 8" },
-  ];
+  const [speakers, setSpeakers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSpeakers = async () => {
+      try {
+        const res = await fetch(`${API_URL.replace('/api', '')}/api/speakers`);
+        const data = await res.json();
+        setSpeakers(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error("Error fetching speakers for carousel:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSpeakers();
+  }, []);
+
+  const getUniqueInstitutions = () => {
+    const institutionsMap = new Map();
+    speakers.forEach(s => {
+      if (s.institution) {
+        // Only set if it doesn't exist, OR if the new one has a logo and the existing one doesn't
+        if (!institutionsMap.has(s.institution) || (!institutionsMap.get(s.institution) && s.institutional_logo_url)) {
+          institutionsMap.set(s.institution, s.institutional_logo_url);
+        }
+      }
+    });
+    return Array.from(institutionsMap.entries()).map(([name, logo], index) => ({ id: index, name, logo }));
+  };
+
+  const institutions = getUniqueInstitutions();
+  const BASE_URL_PUBLIC = API_URL.replace('/api', '');
+
+  if (!loading && institutions.length === 0) return null;
 
   return (
     <section className="py-16 bg-white overflow-hidden scroll-mt-20 border-t border-gray-100" id="instituciones">
       <div className="max-w-7xl mx-auto px-6 mb-10 text-center">
-        <span className="inline-block py-1 px-3 rounded-full bg-[#2b5000]/10 text-[#2b5000] text-sm font-bold tracking-wider mb-4 uppercase">Aliados</span>
+        <span className="inline-block py-1 px-3 rounded-full bg-[#608c1d]/10 text-[#608c1d] text-sm font-bold tracking-wider mb-4 uppercase">Aliados</span>
         <h2 className="text-3xl md:text-4xl font-headline font-extrabold text-gray-900 tracking-tight">Instituciones Invitadas</h2>
-        <div className="w-24 h-1 bg-[#2b5000] mx-auto mt-6 rounded-full"></div>
+        <div className="w-24 h-1 bg-[#608c1d] mx-auto mt-6 rounded-full"></div>
       </div>
-      
-      {/* Carrusel infinito */}
-      <div className="relative w-full flex items-center mt-12">
-        {/* Gradientes para difuminar los bordes */}
-        <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
-        <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
-        
-        <div className="flex animate-marquee whitespace-nowrap">
-          {/* Primer set de logos */}
-          {logos.map((logo) => (
-            <div key={`logo-1-${logo.id}`} className="flex-none w-56 h-28 mx-4 bg-gray-50 border border-gray-100 rounded-2xl flex items-center justify-center shadow-sm hover:shadow-md transition-all hover:-translate-y-1 cursor-pointer group">
-              <span className="font-bold text-gray-400 group-hover:text-[#2b5000] transition-colors">{logo.name}</span>
-            </div>
-          ))}
-          {/* Segundo set de logos (duplicado para el efecto infinito) */}
-          {logos.map((logo) => (
-            <div key={`logo-2-${logo.id}`} className="flex-none w-56 h-28 mx-4 bg-gray-50 border border-gray-100 rounded-2xl flex items-center justify-center shadow-sm hover:shadow-md transition-all hover:-translate-y-1 cursor-pointer group">
-              <span className="font-bold text-gray-400 group-hover:text-[#2b5000] transition-colors">{logo.name}</span>
-            </div>
-          ))}
+
+      {loading ? (
+        <div className="flex justify-center py-10">
+          <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
         </div>
-      </div>
+      ) : (
+        <div className="relative w-full flex items-center mt-12">
+          <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
+          <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
+
+          <div className={`flex ${institutions.length > 4 ? 'animate-marquee whitespace-nowrap' : 'justify-center flex-wrap'}`}>
+            {/* Set 1 */}
+            {institutions.map((inst) => (
+              <div key={`set1-${inst.id}`} className="flex-none w-64 h-32 mx-4 bg-gray-50 border border-gray-100 rounded-3xl flex flex-col items-center justify-center p-4 shadow-sm hover:shadow-md transition-all hover:-translate-y-1 cursor-pointer group">
+                <div className="h-16 w-full flex items-center justify-center mb-2">
+                  {inst.logo ? (
+                    <img 
+                      src={`${BASE_URL_PUBLIC}${inst.logo}`} 
+                      alt={inst.name} 
+                      className="max-h-full max-w-full object-contain grayscale group-hover:grayscale-0 transition-all duration-500" 
+                    />
+                  ) : (
+                    <span className="material-symbols-outlined text-4xl text-gray-200">business</span>
+                  )}
+                </div>
+                <span className="font-bold text-[10px] text-gray-400 group-hover:text-[#608c1d] transition-colors uppercase tracking-widest text-center px-2 truncate w-full">
+                  {inst.name}
+                </span>
+              </div>
+            ))}
+            {/* Set 2 (Solo se añade si hay suficientes para el efecto infinito) */}
+            {institutions.length > 4 && institutions.map((inst) => (
+              <div key={`set2-${inst.id}`} className="flex-none w-64 h-32 mx-4 bg-gray-50 border border-gray-100 rounded-3xl flex flex-col items-center justify-center p-4 shadow-sm hover:shadow-md transition-all hover:-translate-y-1 cursor-pointer group">
+                <div className="h-16 w-full flex items-center justify-center mb-2">
+                  {inst.logo ? (
+                    <img 
+                      src={`${BASE_URL_PUBLIC}${inst.logo}`} 
+                      alt={inst.name} 
+                      className="max-h-full max-w-full object-contain grayscale group-hover:grayscale-0 transition-all duration-500" 
+                    />
+                  ) : (
+                    <span className="material-symbols-outlined text-4xl text-gray-200">business</span>
+                  )}
+                </div>
+                <span className="font-bold text-[10px] text-gray-400 group-hover:text-[#608c1d] transition-colors uppercase tracking-widest text-center px-2 truncate w-full">
+                  {inst.name}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <style>{`
         @keyframes marquee {
@@ -722,7 +1197,7 @@ function InstitucionesInvitadasSection() {
           100% { transform: translateX(-50%); }
         }
         .animate-marquee {
-          animation: marquee 30s linear infinite;
+          animation: marquee 40s linear infinite;
         }
         .animate-marquee:hover {
           animation-play-state: paused;
@@ -740,7 +1215,7 @@ function Footer() {
 
   const socialLinks = [
     { href: "https://www.facebook.com/UMBSanJosedelRincon", label: "Facebook", iconPath: "M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" },
-    { href: "https://www.tiktok.com/@umb_ues_sjr?is_from_webapp=1&sender_device=pc", label: "TikTok", iconPath: "M448,209.91a210.06,210.06,0,0,1-122.77-39.25V349.38A162.55,162.55,0,1,1,185,188.31V278.2a74.62,74.62,0,1,0,52.23,71.18V0l88,0a121.18,121.18,0,0,0,1.86,22.17h0A122.18,122.18,0,0,0,381,102.39a121.43,121.43,0,0,0,67,20.14Z" }
+    { href: "https://www.tiktok.com/@umb_ues_sjr?is_from_webapp=1&sender_device=pc", label: "TikTok", iconPath: "M12.53.02C13.84 0 15.14.01 16.44 0c.08 3.48 2.08 5.61 5.43 5.86v3.82c-2.12-.1-3.91-.81-5.42-1.49L16.43 15.06c.06 3.99-3.04 7.74-7.7 7.74A7.67 7.67 0 0 1 1.08 15.08 7.75 7.75 0 0 1 10.32 7.53v3.84c-2.12.35-3.91 1.87-3.91 3.71a3.91 3.91 0 1 0 6.1-3.71L12.53.02z" }
   ];
 
   return (
@@ -751,9 +1226,9 @@ function Footer() {
           {/* Columna 1: Info + Redes */}
           <div className="md:col-span-2">
             <div className="text-2xl font-black mb-6 tracking-tight">
-            Jornada Académica
+            13va Jornada Academica y Cultural
             </div>
-            <p className="text-primary-fixed-dim max-w-sm mb-8">
+            <p className="text-white/80 max-w-sm mb-8">
               Un evento organizado por la Universidad Mexiquense del Bicentenario
               Unidad de Estudios Superiores San José del Rincón.
             </p>
@@ -799,13 +1274,12 @@ function Footer() {
 
           {/* Columna 2: Enlaces */}
           <div>
-            <h4 className="font-bold mb-6 text-primary-fixed uppercase tracking-widest text-sm">
+            <h4 className="font-bold mb-6 text-white uppercase tracking-widest text-sm">
               Enlaces
             </h4>
             <nav aria-label="Enlaces principales">
-              <ul className="space-y-4 text-primary-fixed-dim">
+              <ul className="space-y-4 text-white/80">
                 <li><a href="#" className="hover:text-white transition-colors">Ver Programa</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Conferencistas</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Registro</a></li>
                 <li><a href="#contacto" className="hover:text-white transition-colors">Contacto</a></li>
               </ul>
@@ -814,11 +1288,11 @@ function Footer() {
 
           {/* Columna 3: Contacto */}
           <div>
-            <h4 className="font-bold mb-6 text-primary-fixed uppercase tracking-widest text-sm">
+            <h4 className="font-bold mb-6 text-white uppercase tracking-widest text-sm">
               Contacto
             </h4>
             <address className="not-italic">
-              <ul className="space-y-4 text-primary-fixed-dim">
+              <ul className="space-y-4 text-white/80">
                 <li className="flex items-start gap-3">
                   <span className="material-symbols-outlined text-xl shrink-0" aria-hidden="true">call</span>
                   <a href="tel:+527121242234" className="hover:text-white transition-colors">
@@ -837,7 +1311,7 @@ function Footer() {
         </div>
 
         {/* Fila inferior: copyright + crédito */}
-        <div className="border-t border-white/20 pt-8 text-center text-primary-fixed-dim text-sm flex flex-col md:flex-row justify-between gap-4">
+        <div className="border-t border-white/20 pt-8 text-center text-white/60 text-sm flex flex-col md:flex-row justify-between gap-4">
           <p>
             © {currentYear} Universidad Mexiquense del Bicentenario – UES San José del Rincón.
           </p>
@@ -853,15 +1327,11 @@ function Footer() {
 // HomePage Component
 function HomePage() {
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col font-sans selection:bg-[#2b5000] selection:text-white">
+    <div className="min-h-screen bg-gray-50 flex flex-col font-sans selection:bg-[#608c1d] selection:text-white">
       <TopNavBar />
       <main className="flex-grow">
         <HeroSection />
         <MosaicoSection />
-        <ConferencistasSection />
-        <EscenariosSection />
-        <ConferenciasSection />
-        <InstitucionesInvitadasMosaicoSection />
         <CountdownSection />
         <ElEventoSection />
         <ProgramaSection />
@@ -870,6 +1340,30 @@ function HomePage() {
       <Footer />
     </div>
   );
+}
+
+function getStoredUser() {
+  const userStr = localStorage.getItem('user') || sessionStorage.getItem('user');
+  try {
+    return userStr ? JSON.parse(userStr) : null;
+  } catch {
+    return null;
+  }
+}
+
+function ProtectedRoute({ children, allowedRoles }) {
+  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+  const user = getStoredUser();
+
+  if (!token || !user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (allowedRoles?.length && !allowedRoles.includes(user.role)) {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
 }
 
 // App Component
@@ -881,10 +1375,10 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset" element={<ResetPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/change-password" element={<CambiarContraseña />} />
-        <Route path="/admin-dashboard" element={<AdminDashboard />} />
-        <Route path="/student-dashboard" element={<StudentDashboard />} />
+        <Route path="/admin-dashboard" element={<ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>} />
+        <Route path="/student-dashboard" element={<ProtectedRoute allowedRoles={['attendee', 'student']}><StudentDashboard /></ProtectedRoute>} />
         <Route path="/register-speakers" element={<RegisterSpeakers />} />
       </Routes>
     </Router>

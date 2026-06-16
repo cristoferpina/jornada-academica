@@ -1,10 +1,15 @@
 package handlers
 
 import (
+	"bytes"
+	"crypto/rand"
 	"database/sql"
+	"encoding/json"
 	"fmt"
+	"io"
+	"log"
+	"math/big"
 	"net/http"
-	"net/smtp"
 	"strings"
 	"time"
 	"unicode"
@@ -17,69 +22,88 @@ import (
 )
 
 type AuthHandler struct {
-	db           *sql.DB
-	jwtSecret    string
-	smtpHost     string
-	smtpPort     string
-	smtpUsername string
-	smtpPassword string
-	smtpFrom     string
-	smtpFromName string
-	frontendURL  string
+	db        *sql.DB
+	jwtSecret string
+	gasURL    string
 }
 
 func NewAuthHandler(
 	db *sql.DB,
 	jwtSecret string,
-	smtpHost string,
-	smtpPort string,
-	smtpUsername string,
-	smtpPassword string,
-	smtpFrom string,
-	smtpFromName string,
-	frontendURL string,
+	gasURL string,
 ) *AuthHandler {
 	return &AuthHandler{
-		db:           db,
-		jwtSecret:    jwtSecret,
-		smtpHost:     strings.TrimSpace(smtpHost),
-		smtpPort:     strings.TrimSpace(smtpPort),
-		smtpUsername: strings.TrimSpace(smtpUsername),
-		smtpPassword: smtpPassword,
-		smtpFrom:     strings.TrimSpace(smtpFrom),
-		smtpFromName: strings.TrimSpace(smtpFromName),
-		frontendURL:  strings.TrimSpace(frontendURL),
+		db:        db,
+		jwtSecret: jwtSecret,
+		gasURL:    strings.TrimSpace(gasURL),
 	}
 }
 
-func (h *AuthHandler) isSMTPConfigured() bool {
-	return h.smtpHost != "" && h.smtpPort != "" && h.smtpUsername != "" && h.smtpPassword != "" && h.smtpFrom != ""
+func (h *AuthHandler) validatePassword(password string) error {
+	var (
+		hasMinLen  = len(password) >= 8
+		hasUpper   = false
+		hasLower   = false
+		hasNumber  = false
+		hasSpecial = false
+	)
+	for _, char := range password {
+		switch {
+		case unicode.IsUpper(char):
+			hasUpper = true
+		case unicode.IsLower(char):
+			hasLower = true
+		case unicode.IsNumber(char):
+			hasNumber = true
+		case unicode.IsPunct(char) || unicode.IsSymbol(char):
+			hasSpecial = true
+		}
+	}
+	if !hasMinLen {
+		return fmt.Errorf("la contraseña debe tener al menos 8 caracteres")
+	}
+	if !hasUpper {
+		return fmt.Errorf("la contraseña debe tener al menos una letra mayúscula")
+	}
+	if !hasLower {
+		return fmt.Errorf("la contraseña debe tener al menos una letra minúscula")
+	}
+	if !hasNumber {
+		return fmt.Errorf("la contraseña debe tener al menos un número")
+	}
+	if !hasSpecial {
+		return fmt.Errorf("la contraseña debe tener al menos un carácter especial")
+	}
+	return nil
 }
 
-func (h *AuthHandler) sendResetEmail(toEmail string, token string) error {
-	fromName := h.smtpFromName
-	if fromName == "" {
-		fromName = "Jornada Academica"
+func (h *AuthHandler) callGAS(data map[string]interface{}) (map[string]interface{}, error) {
+	if h.gasURL == "" {
+		return nil, fmt.Errorf("GAS_URL no configurada")
 	}
 
-	resetURL := strings.TrimSpace(h.frontendURL)
-	if resetURL == "" {
-		resetURL = "http://localhost:5173"
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
 	}
-	if strings.HasSuffix(resetURL, "/") {
-		resetURL = strings.TrimSuffix(resetURL, "/")
+
+	resp, err := http.Post(h.gasURL, "application/json", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return nil, err
 	}
-	resetURL = fmt.Sprintf("%s/reset", resetURL)
+	defer resp.Body.Close()
 
-	subject := "Recuperacion de contrasena - Jornada Academica"
-	body := fmt.Sprintf("Hola,\r\n\r\nRecibimos una solicitud para restablecer tu contrasena.\r\n\r\nToken: %s\r\n\r\nTambien puedes abrir este enlace y pegar tu token:\r\n%s\r\n\r\nSi no solicitaste este cambio, ignora este mensaje.\r\n", token, resetURL)
+	// Leer el cuerpo para diagnóstico si falla el decode
+	bodyBytes, _ := io.ReadAll(resp.Body)
+	
+	var result map[string]interface{}
+	if err := json.Unmarshal(bodyBytes, &result); err != nil {
+		log.Printf("⚠️ GAS devolvió una respuesta no válida (posible error de permisos o script): %s", string(bodyBytes))
+		return nil, err
+	}
 
-	message := fmt.Sprintf("From: %s <%s>\r\nTo: %s\r\nSubject: %s\r\nMIME-Version: 1.0\r\nContent-Type: text/plain; charset=\"UTF-8\"\r\n\r\n%s", fromName, h.smtpFrom, toEmail, subject, body)
-
-	auth := smtp.PlainAuth("", h.smtpUsername, h.smtpPassword, h.smtpHost)
-	addr := fmt.Sprintf("%s:%s", h.smtpHost, h.smtpPort)
-
-	return smtp.SendMail(addr, auth, h.smtpFrom, []string{toEmail}, []byte(message))
+	log.Printf("📡 Respuesta de GAS: %v", result)
+	return result, nil
 }
 
 func normalizeEmailPrefix(value string) string {
@@ -329,6 +353,12 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
+	// Validar requisitos de contraseña
+	if err := h.validatePassword(req.Password); err != nil {
+		c.JSON(http.StatusBadRequest, models.ErrorResponse{Message: err.Error()})
+		return
+	}
+
 	// Hashear contraseña
 	hashed, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -504,6 +534,12 @@ func (h *AuthHandler) RegisterStudent(c *gin.Context) {
 	}
 	if existingCount > 0 {
 		c.JSON(http.StatusConflict, models.ErrorResponse{Message: "Este correo institucional ya está registrado"})
+		return
+	}
+
+	// Validar requisitos de contraseña
+	if err := h.validatePassword(req.Password); err != nil {
+		c.JSON(http.StatusBadRequest, models.ErrorResponse{Message: err.Error()})
 		return
 	}
 
@@ -783,6 +819,12 @@ func (h *AuthHandler) ChangePassword(c *gin.Context) {
 		return
 	}
 
+	// Validar requisitos de contraseña
+	if err := h.validatePassword(req.NewPassword); err != nil {
+		c.JSON(http.StatusBadRequest, models.ErrorResponse{Message: err.Error()})
+		return
+	}
+
 	hashed, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.ErrorResponse{Message: "Error procesando contraseña", Error: err.Error()})
@@ -869,6 +911,12 @@ func (h *AuthHandler) ResetPassword(c *gin.Context) {
 		return
 	}
 
+	// Validar requisitos de contraseña
+	if err := h.validatePassword(req.NewPassword); err != nil {
+		c.JSON(http.StatusBadRequest, models.ErrorResponse{Message: err.Error()})
+		return
+	}
+
 	// Hashear nueva contraseña
 	hashed, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
 	if err != nil {
@@ -897,9 +945,27 @@ func (h *AuthHandler) Verify(c *gin.Context) {
 	}
 
 	user := userInterface.(*models.JWTClaims)
-	c.JSON(http.StatusOK, gin.H{
-		"user": user,
-	})
+	
+	// Si es alumno, incluir datos de estudiante
+	var response = gin.H{"user": user}
+	if user.Role == "attendee" {
+		var student models.Student
+		err := h.db.QueryRow(`
+			SELECT s.id, s.matricula, s.first_name, s.last_name, s.career, s.user_id, 
+			       COALESCE(cp.priority_bonus, 0), s.created_at, s.updated_at
+			FROM students s
+			LEFT JOIN career_priority cp ON s.career = cp.career
+			WHERE s.user_id = $1
+		`, user.ID).Scan(
+			&student.ID, &student.Matricula, &student.FirstName, &student.LastName,
+			&student.Career, &student.UserID, &student.PriorityPoints, &student.CreatedAt, &student.UpdatedAt,
+		)
+		if err == nil {
+			response["student"] = student
+		}
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
 // Logout cierra la sesión (simplemente retorna confirmación)
@@ -908,3 +974,256 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 		"message": "Sesión cerrada exitosamente",
 	})
 }
+
+// ListAdmins devuelve todos los usuarios con rol de administrador
+func (h *AuthHandler) ListAdmins(c *gin.Context) {
+	rows, err := h.db.Query(`SELECT id, email, name, role, created_at, last_login FROM users WHERE role = 'admin' ORDER BY id`)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.ErrorResponse{Message: "Error consultando administradores", Error: err.Error()})
+		return
+	}
+	defer rows.Close()
+
+	var list []models.User
+	for rows.Next() {
+		var u models.User
+		if err := rows.Scan(&u.ID, &u.Email, &u.Name, &u.Role, &u.CreatedAt, &u.LastLogin); err != nil {
+			c.JSON(http.StatusInternalServerError, models.ErrorResponse{Message: "Error leyendo fila", Error: err.Error()})
+			return
+		}
+		list = append(list, u)
+	}
+
+	c.JSON(http.StatusOK, list)
+}
+
+// CreateAdmin permite a un administrador crear otro administrador
+func (h *AuthHandler) CreateAdmin(c *gin.Context) {
+	var req models.RegisterRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, models.ErrorResponse{Message: "Campos inválidos", Error: err.Error()})
+		return
+	}
+
+	// Forzar rol admin
+	req.Role = "admin"
+
+	// Verificar si el email ya existe
+	var count int
+	err := h.db.QueryRow("SELECT COUNT(*) FROM users WHERE email = $1", req.Email).Scan(&count)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.ErrorResponse{Message: "Error del servidor", Error: err.Error()})
+		return
+	}
+	if count > 0 {
+		c.JSON(http.StatusConflict, models.ErrorResponse{Message: "El correo ya está registrado"})
+		return
+	}
+
+	// Validar requisitos de contraseña
+	if err := h.validatePassword(req.Password); err != nil {
+		c.JSON(http.StatusBadRequest, models.ErrorResponse{Message: err.Error()})
+		return
+	}
+
+	// Hashear contraseña
+	hashed, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.ErrorResponse{Message: "Error al procesar contraseña", Error: err.Error()})
+		return
+	}
+
+	var userID int
+	err = h.db.QueryRow(
+		"INSERT INTO users (email, password_hash, name, role, is_active) VALUES ($1, $2, $3, $4, $5) RETURNING id",
+		req.Email, string(hashed), req.Name, "admin", true,
+	).Scan(&userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.ErrorResponse{Message: "Error creando administrador", Error: err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"id": userID, "email": req.Email, "name": req.Name, "role": "admin"})
+}
+
+// DeleteAdmin elimina un administrador (solo puede eliminarse a sí mismo)
+func (h *AuthHandler) DeleteAdmin(c *gin.Context) {
+	targetID := c.Param("id")
+	
+	userInterface, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, models.ErrorResponse{Message: "Usuario no autenticado"})
+		return
+	}
+
+	claims := userInterface.(*models.JWTClaims)
+	
+	// Convertir targetID a int para comparar
+	var tid int
+	fmt.Sscanf(targetID, "%d", &tid)
+
+	if tid != claims.ID {
+		c.JSON(http.StatusForbidden, models.ErrorResponse{
+			Message: "No tienes permisos para eliminar a otros administradores. Solo puedes eliminar tu propia cuenta.",
+		})
+		return
+	}
+
+	// Proceder con la eliminación
+	_, err := h.db.Exec("DELETE FROM users WHERE id = $1", tid)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.ErrorResponse{Message: "Error al eliminar la cuenta", Error: err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Tu cuenta de administrador ha sido eliminada exitosamente"})
+}
+
+// RequestReset solicita un PIN de recuperación por email vía GAS.
+func (h *AuthHandler) RequestReset(c *gin.Context) {
+	log.Printf("📥 RequestReset recibida para: %v", c.Request.Body)
+	var req models.RequestResetRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, models.ErrorResponse{Message: "Email requerido", Error: err.Error()})
+		return
+	}
+
+	log.Printf("🔍 Buscando usuario: %s", req.Email)
+	// 1. Verificar si el usuario existe localmente
+	var userID int
+	err := h.db.QueryRow("SELECT id FROM users WHERE email = $1", req.Email).Scan(&userID)
+	if err == sql.ErrNoRows {
+		log.Printf("⚠️ Usuario no encontrado: %s", req.Email)
+		// Por seguridad, devolvemos éxito aunque no exista
+		c.JSON(http.StatusOK, gin.H{"success": true, "message": "Si el correo está registrado, recibirás un PIN de recuperación."})
+		return
+	}
+
+	// 2. Generar PIN local de 8 dígitos
+	pinBig, _ := rand.Int(rand.Reader, big.NewInt(90000000))
+	pin := fmt.Sprintf("%08d", pinBig.Int64()+10000000)
+	expires := time.Now().Add(15 * time.Minute)
+
+	// 3. Guardar PIN en la BD local
+	_, err = h.db.Exec("UPDATE users SET reset_pin = $1, reset_pin_expires = $2 WHERE id = $3", pin, expires, userID)
+	if err != nil {
+		log.Printf("❌ DATABASE ERROR: %v", err)
+	}
+
+	// Log para recuperación manual
+	log.Printf("🔑 PIN_RECOVERY_GENERATED: Email=%s PIN=%s", req.Email, pin)
+
+	// 4. Intentar enviar vía GAS (opcional)
+	result, err := h.callGAS(map[string]interface{}{
+		"action": "requestReset",
+		"email":  req.Email,
+		"pin":    pin, 
+	})
+
+	if err != nil {
+		log.Printf("❌ Error llamando a GAS (requestReset): %v. PIN generado: %s", err, pin)
+		// Si falla GAS (ej: dominio Gmail), notificamos al log el PIN para recuperación manual
+		log.Printf("🔑 PIN DE RECUPERACIÓN PARA %s: %s", req.Email, pin)
+		
+		c.JSON(http.StatusOK, gin.H{
+			"success": true, 
+			"message": "Se ha generado un PIN de recuperación. Por favor revisa tu correo (y spam).",
+			"pin_debug": pin, // Solo para desarrollo/emergencia si GAS falla
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, result)
+}
+
+// VerifyPin verifica que el PIN ingresado sea correcto.
+func (h *AuthHandler) VerifyPin(c *gin.Context) {
+	var req models.VerifyPinRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, models.ErrorResponse{Message: "Campos requeridos", Error: err.Error()})
+		return
+	}
+
+	// 1. Verificar PIN localmente
+	var dbPin string
+	var expires time.Time
+	err := h.db.QueryRow("SELECT reset_pin, reset_pin_expires FROM users WHERE email = $1", req.Email).Scan(&dbPin, &expires)
+	
+	if err == nil && dbPin == req.Pin && time.Now().Before(expires) {
+		c.JSON(http.StatusOK, gin.H{"success": true, "message": "PIN verificado correctamente"})
+		return
+	}
+
+	// 2. Fallback a GAS (por si se generó allá)
+	result, err := h.callGAS(map[string]interface{}{
+		"action": "verifyPin",
+		"email":  req.Email,
+		"pin":    req.Pin,
+	})
+
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, models.ErrorResponse{Message: "PIN inválido o expirado"})
+		return
+	}
+
+	c.JSON(http.StatusOK, result)
+}
+
+// UpdatePasswordWithPin cambia la contraseña verificando el PIN.
+func (h *AuthHandler) UpdatePasswordWithPin(c *gin.Context) {
+	var req models.UpdatePasswordWithPinRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, models.ErrorResponse{Message: "Campos requeridos", Error: err.Error()})
+		return
+	}
+
+	// 1. Verificar PIN localmente primero
+	var dbPin string
+	var expires time.Time
+	err := h.db.QueryRow("SELECT reset_pin, reset_pin_expires FROM users WHERE email = $1", req.Email).Scan(&dbPin, &expires)
+	
+	isLocalValid := (err == nil && dbPin == req.Pin && time.Now().Before(expires))
+
+	if !isLocalValid {
+		// Intentar verificar vía GAS antes de rendirse
+		gasResult, err := h.callGAS(map[string]interface{}{
+			"action": "verifyPin",
+			"email":  req.Email,
+			"pin":    req.Pin,
+		})
+		if err != nil || gasResult["success"] != true {
+			c.JSON(http.StatusUnauthorized, models.ErrorResponse{Message: "PIN inválido para actualizar contraseña"})
+			return
+		}
+	}
+
+	// 2. Actualizar contraseña localmente
+	// Validar requisitos de contraseña
+	if err := h.validatePassword(req.NewPassword); err != nil {
+		c.JSON(http.StatusBadRequest, models.ErrorResponse{Message: err.Error()})
+		return
+	}
+
+	hashed, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.ErrorResponse{Message: "Error procesando contraseña"})
+		return
+	}
+
+	_, err = h.db.Exec("UPDATE users SET password_hash = $1, reset_pin = NULL, reset_pin_expires = NULL WHERE email = $2", string(hashed), req.Email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.ErrorResponse{Message: "Error al actualizar la base de datos"})
+		return
+	}
+
+	// 3. (Opcional) Sincronizar con GAS si es necesario
+	_, _ = h.callGAS(map[string]interface{}{
+		"action":      "updatePassword",
+		"email":       req.Email,
+		"pin":         req.Pin,
+		"newPassword": req.NewPassword,
+	})
+
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Contraseña actualizada exitosamente"})
+}
+
