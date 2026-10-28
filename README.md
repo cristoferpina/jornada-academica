@@ -4,7 +4,9 @@
 
 # Jornada académica
 
-Proyecto organizado en frontend y backend, con recursos de base de datos y documentación de pruebas.
+**Una aplicación web alrededor de la jornada académica.**
+
+Proyecto con una interfaz React, un backend separado y documentación de pruebas para explorar su desarrollo por capas.
 
 <img alt="React" src="https://img.shields.io/badge/React-0F172A?style=for-the-badge" />
 <img alt="Vite" src="https://img.shields.io/badge/Vite-1D4ED8?style=for-the-badge" />
@@ -15,6 +17,17 @@ Proyecto organizado en frontend y backend, con recursos de base de datos y docum
 [Código fuente](https://github.com/cristoferpina/jornada-academica) &nbsp; / &nbsp; [Incidencias](https://github.com/cristoferpina/jornada-academica/issues) &nbsp; / &nbsp; [Perfil](https://github.com/cristoferpina)
 
 </div>
+
+## Una mirada al proyecto
+
+| Qué encontrarás | Por qué explorarlo |
+| --- | --- |
+| Una aplicación web alrededor de la jornada académica. | Proyecto con una interfaz React, un backend separado y documentación de pruebas para explorar su desarrollo por capas. |
+| Trabajo de desarrollo | Organización de frontend y backend, formularios con React y recursos para pruebas y ejecución con contenedores. |
+
+**[Explora la interfaz React →](frontend/)**
+
+
 
 ---
 
